@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Challenge1</string>
+
+    <string name="title_animals">Animals App</string>
+    <string name="animal_img">Frog</string>
+    <string name="owner_label">Owner:</string>
+    <string name="name_label">Name:</string>
+    <string name="age_label">Age:</string>
+    <string name="animal_prompt">Choose a animal</string>
+    <string-array name="animal_options">
+        <item>Frog</item>
+        <item>Rhino</item>
+        <item>Snail</item>
+    </string-array>
+</resources>
