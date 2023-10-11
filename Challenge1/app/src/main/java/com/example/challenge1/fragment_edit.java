@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -34,6 +35,7 @@ public class fragment_edit extends Fragment {
     private EditText editName;
     private EditText editAge;
     private Button backButton;
+    private Button saveButton;
 
     // Listener for fragment change events
     @Nullable
@@ -80,6 +82,9 @@ public class fragment_edit extends Fragment {
         this.editName =  view.findViewById(R.id.edit_name);
         this.editAge =  view.findViewById(R.id.edit_age);
         this.backButton = view.findViewById(R.id.back_button);
+        this.saveButton = view.findViewById(R.id.save_button);
+
+
 
         // Add a TextChangedListener to editAge for input validation
         editAge.addTextChangedListener(new TextWatcher() {
@@ -121,10 +126,15 @@ public class fragment_edit extends Fragment {
             editName.setText(animal.getName());
             editAge.setText(String.valueOf(animal.getAge()));
         }
+        saveButton.setEnabled(false);
 
         // Set Back Button Listener
-        backButton.setOnClickListener(v -> {
+
+        saveButton.setOnClickListener(v -> {
             updateAnimalDetails();
+        });
+        backButton.setOnClickListener(v -> {
+            goToAnimalDisplay();
         });
     }
 
@@ -134,7 +144,7 @@ public class fragment_edit extends Fragment {
         boolean isNameValid = validateInputLength(editName.getText().toString());
 
         // Enable the "Back" button only when all input fields are valid
-        backButton.setEnabled(isAgeValid && isOwnerValid && isNameValid);
+        saveButton.setEnabled(isAgeValid && isOwnerValid && isNameValid);
     }
 
     private boolean validateAgeInput(String input) {
@@ -160,7 +170,7 @@ public class fragment_edit extends Fragment {
     }
 
     private boolean validateInputLength(String input) {
-        return input != null && !input.isEmpty() && input.length() <= 8;
+        return input != null && !input.isEmpty() && input.length() <= 10;
     }
 
 
@@ -174,6 +184,13 @@ public class fragment_edit extends Fragment {
             animal.setOwner(newOwner);
             animal.setName(newName);
             animal.setAge(newAge);
+        }
+        Toast.makeText(getActivity(), "Saved!",
+                Toast.LENGTH_LONG).show();
+        saveButton.setEnabled(false);
+    }
+
+    private void goToAnimalDisplay() {
 
             Bundle bundle = new Bundle();
             bundle.putInt("animal_selected", animalSelected);
@@ -182,7 +199,8 @@ public class fragment_edit extends Fragment {
             fragment_animal fragment = new fragment_animal();
             fragment.setArguments(bundle);
             FragmentChangeListener.replaceFragment(fragment);
-        }
-    }
 
     }
+
+
+}
