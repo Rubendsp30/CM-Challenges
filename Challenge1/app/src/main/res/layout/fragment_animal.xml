@@ -14,145 +14,160 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.5">
 
+        <ImageView
+            android:id="@+id/imageView4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/top_background"
+            tools:src="@drawable/top_background"
+            tools:ignore="MissingConstraints" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:gravity="center"
             android:orientation="vertical">
 
             <TextView
-                android:id="@+id/appTitle"
+                android:id="@+id/textView2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginTop="16dp"
-                android:text="@string/title_animals"
-                android:textSize="25sp"
-                />
+                android:layout_marginBottom="40dp"
+                android:text="Select the animal \n you want!"
+                android:textAlignment="center"
+                android:textColor="#ffff"
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical"
-                android:gravity="center">
+                android:textSize="40sp"
+                android:textStyle="bold"
+                tools:ignore="HardcodedText" />
 
-                <androidx.constraintlayout.widget.ConstraintLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content">
+            <ImageView
+                android:id="@+id/animal_avatar"
+                android:layout_width="250dp"
+                android:layout_height="250dp"
+                android:contentDescription="@string/animal_img"
+                android:scaleType="centerCrop"
+                android:src="@drawable/frog"
+                tools:src="@drawable/frog" />
 
-                    <Spinner
-                        android:id="@+id/animal_spinner"
-                        android:layout_width="150dp"
-                        android:layout_height="50dp"
-                        android:entries="@array/animal_options"
-                        app:layout_constraintBottom_toTopOf="@+id/animal_avatar"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        android:layout_marginBottom="80dp"/>
+            <Spinner
+                android:id="@+id/animal_spinner"
+                android:layout_width="250dp"
+                android:layout_height="50dp"
+                android:layout_marginBottom="16dp"
+                android:entries="@array/animal_options" />
 
-                    <ImageView
-                        android:id="@+id/animal_avatar"
-                        android:layout_width="150dp"
-                        android:layout_height="150dp"
-                        android:contentDescription="@string/animal_img"
-                        android:scaleType="centerCrop"
-                        android:src="@drawable/frog"
-                        app:layout_constraintDimensionRatio="1:1"
-                        tools:layout_editor_absoluteX="55dp"
-                        tools:layout_editor_absoluteY="412dp"
-                        app:layout_constraintBottom_toTopOf="@+id/animal_info_table"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        app:layout_constraintVertical_chainStyle="packed"/>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp">
 
-                    <TableLayout
-                        android:id="@+id/animal_info_table"
-                        android:layout_width="wrap_content"
+                <!-- Button 1 -->
+
+                <!-- Button 2 -->
+
+                <TableLayout
+                    android:id="@+id/animal_info_table"
+                    android:layout_width="180dp"
+                    android:layout_height="120dp"
+                    android:layout_marginBottom="16dp"
+                    android:stretchColumns="1"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/animal_avatar"
+                    tools:ignore="NotSibling">
+
+                    <TableRow
+                        android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/border">
 
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/animal_avatar">
-
-                        <TableRow
-                            android:layout_width="fill_parent"
+                        <TextView
+                            android:id="@+id/owner_label_text"
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/border">
+                            android:background="@drawable/border"
+                            android:text="@string/owner_label"
+                            android:textSize="18sp" />
 
-                            <TextView
-                                android:id="@+id/owner_label_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/border"
-                                android:text="@string/owner_label"
-                                android:textSize="20sp" />
-
-                            <TextView
-                                android:id="@+id/display_owner"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/border"
-                                android:textSize="20sp" />
-                        </TableRow>
-
-                        <TableRow
-                            android:layout_width="fill_parent"
+                        <TextView
+                            android:id="@+id/display_owner"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/border">
+                            android:background="@drawable/border"
+                            android:textSize="18sp" />
+                    </TableRow>
 
-                            <TextView
-                                android:id="@+id/name_label_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/border"
-                                android:text="@string/name_label"
-                                android:textSize="20sp" />
-
-                            <TextView
-                                android:id="@+id/display_name"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/border"
-                                android:textSize="20sp" />
-                        </TableRow>
-
-                        <TableRow
-                            android:layout_width="fill_parent"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/border">
-
-                            <TextView
-                                android:id="@+id/age_label_text"
-                                android:layout_width="wrap_content"
-                                android:layout_height="match_parent"
-                                android:background="@drawable/border"
-                                android:text="@string/age_label"
-                                android:textSize="20sp" />
-
-                            <TextView
-                                android:id="@+id/display_age"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:background="@drawable/border"
-                                android:textSize="20sp" />
-                        </TableRow>
-                    </TableLayout>
-
-                    <Button
-                        android:id="@+id/edit_button"
-                        android:layout_width="wrap_content"
+                    <TableRow
+                        android:layout_width="fill_parent"
                         android:layout_height="wrap_content"
-                        android:text="Edit"
-                        app:cornerRadius="0dp"
-                        android:layout_marginTop="8dp"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/animal_info_table" />
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/border">
 
-                </androidx.constraintlayout.widget.ConstraintLayout>
-            </LinearLayout>
 
+                        <TextView
+                            android:id="@+id/name_label_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/border"
+                            android:text="@string/name_label"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/display_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/border"
+                            android:textSize="18sp" />
+                    </TableRow>
+
+                    <TableRow
+                        android:layout_width="fill_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:background="@drawable/border">
+
+                        <TextView
+                            android:id="@+id/age_label_text"
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:background="@drawable/border"
+                            android:text="@string/age_label"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:id="@+id/display_age"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+
+                            android:background="@drawable/border"
+                            android:textSize="18sp" />
+                    </TableRow>
+                </TableLayout>
+
+
+                <!-- Button 3 -->
+                <androidx.appcompat.widget.AppCompatButton
+                    android:id="@+id/edit_button"
+                    style="@android:style/Widget.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/button_background"
+                    android:text="Edit"
+                    android:textColor="#ffffff"
+                    android:textSize="20dp"
+                    app:cornerRadius="0dp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/animal_info_table" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

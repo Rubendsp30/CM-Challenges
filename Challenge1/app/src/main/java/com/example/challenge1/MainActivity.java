@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragmentContainerView, fragment, tag)
-               // .addToBackStack(tag)//Remover isto?
+                // .addToBackStack(tag)//Remover isto?
                 .commit();
     }
 
