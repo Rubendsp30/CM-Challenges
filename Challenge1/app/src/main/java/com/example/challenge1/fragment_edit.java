@@ -128,11 +128,12 @@ public class fragment_edit extends Fragment {
         }
         saveButton.setEnabled(false);
 
-        // Set Back Button Listener
-
+        // Set Save Button Listener
         saveButton.setOnClickListener(v -> {
             updateAnimalDetails();
         });
+
+        // Set Back Button Listener
         backButton.setOnClickListener(v -> {
             goToAnimalDisplay();
         });
@@ -143,7 +144,7 @@ public class fragment_edit extends Fragment {
         boolean isOwnerValid = validateInputLength(editOwner.getText().toString());
         boolean isNameValid = validateInputLength(editName.getText().toString());
 
-        // Enable the "Back" button only when all input fields are valid
+        // Enable the "Save" button only when all input fields are valid
         saveButton.setEnabled(isAgeValid && isOwnerValid && isNameValid);
     }
 
@@ -151,7 +152,6 @@ public class fragment_edit extends Fragment {
         if (input != null && !input.isEmpty()) {
             try {
                 int age = Integer.parseInt(input);
-                // Age validation logic can be added here
                 if (age >= 0) {
                     // Valid input
                     return true;
