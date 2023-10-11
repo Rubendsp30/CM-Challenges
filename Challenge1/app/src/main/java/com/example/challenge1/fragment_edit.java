@@ -52,6 +52,7 @@ public class fragment_edit extends Fragment {
 
         @Override
         public void afterTextChanged(Editable s) {
+            validateAllInput();
         }
     };
 
@@ -93,6 +94,7 @@ public class fragment_edit extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
+                validateAllInput();
             }
         });
 
@@ -122,40 +124,43 @@ public class fragment_edit extends Fragment {
 
         // Set Back Button Listener
         backButton.setOnClickListener(v -> {
-            if (validateAgeInput(editAge.getText().toString())) {
-                updateAnimalDetails();
-            }
+            updateAnimalDetails();
         });
     }
 
+    private void validateAllInput() {
+        boolean isAgeValid = validateAgeInput(editAge.getText().toString());
+        boolean isOwnerValid = validateInputLength(editOwner.getText().toString());
+        boolean isNameValid = validateInputLength(editName.getText().toString());
+
+        // Enable the "Back" button only when all input fields are valid
+        backButton.setEnabled(isAgeValid && isOwnerValid && isNameValid);
+    }
+
     private boolean validateAgeInput(String input) {
-        try {
-            int age = Integer.parseInt(input);
-            // Age validation logic can be added here
-            if (age >= 0) {
-                // Valid input
-                backButton.setEnabled(true);
-                return true;
-            } else {
-                // Invalid input (e.g., negative age)
-                backButton.setEnabled(false);
+        if (input != null && !input.isEmpty()) {
+            try {
+                int age = Integer.parseInt(input);
+                // Age validation logic can be added here
+                if (age >= 0) {
+                    // Valid input
+                    return true;
+                } else {
+                    // Invalid input (e.g., negative age)
+                    return false;
+                }
+            } catch (NumberFormatException e) {
+                // Invalid input (not a valid integer)
                 return false;
             }
-        } catch (NumberFormatException e) {
-            // Invalid input (not a valid integer)
-            backButton.setEnabled(false);
+        } else {
+            // Empty or null input
             return false;
         }
     }
 
     private boolean validateInputLength(String input) {
-        if (input.length() <= 8) {
-            backButton.setEnabled(true);
-            return true;
-        } else {
-            backButton.setEnabled(false);
-            return false;
-        }
+        return input != null && !input.isEmpty() && input.length() <= 8;
     }
 
 
