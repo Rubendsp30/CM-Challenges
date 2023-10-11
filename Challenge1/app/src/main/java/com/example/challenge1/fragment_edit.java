@@ -39,6 +39,22 @@ public class fragment_edit extends Fragment {
     @Nullable
     private FragmentChangeListener FragmentChangeListener;
 
+    // Declare a TextWatcher instance to reuse
+    private TextWatcher inputTextWatcher = new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            validateInputLength(s.toString());
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+        }
+    };
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -81,36 +97,10 @@ public class fragment_edit extends Fragment {
         });
 
         // Add a TextChangedListener to editOwner for input validation
-        editOwner.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                validateInputLength(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
+        editOwner.addTextChangedListener(inputTextWatcher);
 
         // Add a TextChangedListener to editName for input validation
-        editName.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                validateInputLength(s.toString());
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
+        editName.addTextChangedListener(inputTextWatcher);
 
         return view;
     }
