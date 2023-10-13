@@ -70,6 +70,14 @@ public class fragment_edit extends Fragment {
         // Initialize the FragmentChangeListener
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
 
+        return view;
+    }
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         // Retrieve the selected animal index from the fragment arguments
         Bundle bundle = this.getArguments();
         if (bundle != null) {
@@ -83,8 +91,6 @@ public class fragment_edit extends Fragment {
         this.editAge =  view.findViewById(R.id.edit_age);
         this.backButton = view.findViewById(R.id.back_button);
         this.saveButton = view.findViewById(R.id.save_button);
-
-
 
         // Add a TextChangedListener to editAge for input validation
         editAge.addTextChangedListener(new TextWatcher() {
@@ -108,14 +114,6 @@ public class fragment_edit extends Fragment {
 
         // Add a TextChangedListener to editName for input validation
         editName.addTextChangedListener(inputTextWatcher);
-
-        return view;
-    }
-
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
 
         assert animalViewModel.getAnimals() != null;
 
@@ -187,7 +185,8 @@ public class fragment_edit extends Fragment {
         }
         Toast.makeText(getActivity(), "Saved!",
                 Toast.LENGTH_LONG).show();
-        saveButton.setEnabled(false);
+        //saveButton.setEnabled(false);
+        goToAnimalDisplay();
     }
 
     private void goToAnimalDisplay() {
@@ -201,6 +200,5 @@ public class fragment_edit extends Fragment {
             FragmentChangeListener.replaceFragment(fragment);
 
     }
-
 
 }

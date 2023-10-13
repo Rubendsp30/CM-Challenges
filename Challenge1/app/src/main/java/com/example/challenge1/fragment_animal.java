@@ -51,12 +51,18 @@ public class fragment_animal extends Fragment {
         // Initialize the FragmentChangeListener
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
 
+        return view;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
         // Retrieve the selected animal index from the fragment arguments
         Bundle bundle = this.getArguments();
         if (bundle != null) {
             this.animalSelected = bundle.getInt("animal_selected");
         }
-
+        // Mudar isto para o onViewCreated????
         // Initialize UI elements by finding their views in the layout
         this.animalSpinner = view.findViewById(R.id.animal_spinner);
         this.animalSpinner.setSelection(this.animalSelected);
@@ -86,20 +92,15 @@ public class fragment_animal extends Fragment {
             }
         });
 
-        return view;
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         // Set Edit Button Listener
         this.editButton.setOnClickListener(v -> {
             // Build Information Bundle for sharing state with EditAnimal Fragment
-            Bundle bundle = new Bundle();
-            bundle.putInt("animal_selected", this.animalSelected);
+            Bundle bundle2 = new Bundle();
+            bundle2.putInt("animal_selected", this.animalSelected);
 
             // Load new fragment with bundled information and switch to the other fragment
             fragment_edit fragment = new fragment_edit();
-            fragment.setArguments(bundle);
+            fragment.setArguments(bundle2);
             FragmentChangeListener.replaceFragment(fragment);
         });
 
