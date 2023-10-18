@@ -5,6 +5,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.challenge1.FragmentChangeListener;
@@ -42,8 +43,24 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.fragmentContainerView, fragment, tag)
-                // .addToBackStack(tag)//Remover isto?
                 .commit();
     }
+
+    @Override
+    public void onBackPressed() {
+        Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.fragmentContainerView);
+
+        if (currentFragment instanceof fragment_edit) {
+            // If the current fragment is "fragment_edit," replace it with "fragment_animal"
+            loadFragment(new fragment_animal(), TAG_FRAGMENT_ANIMAL);
+        } else if (currentFragment instanceof fragment_animal) {
+            // If the current fragment is "fragment_animal," exit the app
+            finish();
+        } else {
+            // For any other fragment, perform the default back button behavior
+            super.onBackPressed();
+        }
+    }
+
 
 }
