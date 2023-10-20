@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".fragment_edit">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -18,12 +18,14 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            app:layout_constraintTop_toTopOf="parent">
 
             <TextView
                 android:id="@+id/appTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
                 android:layout_gravity="center"
                 android:text="@string/title_animals"
                 android:textSize="25sp" />
@@ -52,14 +54,14 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:layout_marginEnd="16dp"
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="24dp"
+                    android:layout_marginEnd="16dp"
                     android:layout_marginBottom="10dp"
+                    android:stretchColumns="1"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/avatar_edit"
-                    android:stretchColumns="1">
+                    app:layout_constraintTop_toBottomOf="@+id/avatar_edit">
 
                     <TableRow
                         android:layout_width="fill_parent"
@@ -70,12 +72,12 @@
                             android:id="@+id/owner_label_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/owner_label"
-                            android:textSize="20sp"
-                            android:layout_weight="1"
-                            android:gravity="end"
                             android:layout_marginEnd="8dp"
-                            android:background="@drawable/border"/>
+                            android:layout_weight="1"
+                            android:background="@drawable/border"
+                            android:gravity="end"
+                            android:text="@string/owner_label"
+                            android:textSize="20sp" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
@@ -85,7 +87,7 @@
                                 android:id="@+id/edit_owner"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-                                 />
+                                android:layout_marginBottom="8dp"/>
                         </com.google.android.material.textfield.TextInputLayout>
 
                     </TableRow>
@@ -99,12 +101,12 @@
                             android:id="@+id/name_label_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/name_label"
-                            android:textSize="20sp"
-                            android:layout_weight="1"
-                            android:gravity="end"
                             android:layout_marginEnd="8dp"
-                            android:background="@drawable/border"/>
+                            android:layout_weight="1"
+                            android:background="@drawable/border"
+                            android:gravity="end"
+                            android:text="@string/name_label"
+                            android:textSize="20sp" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="fill_parent"
@@ -114,7 +116,7 @@
                                 android:id="@+id/edit_name"
                                 android:layout_width="fill_parent"
                                 android:layout_height="wrap_content"
-                                 />
+                                android:layout_marginBottom="8dp"/>
                         </com.google.android.material.textfield.TextInputLayout>
                     </TableRow>
 
@@ -127,12 +129,12 @@
                             android:id="@+id/age_label_text"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/age_label"
-                            android:textSize="20sp"
-                            android:layout_weight="1"
-                            android:gravity="end"
                             android:layout_marginEnd="8dp"
-                            android:background="@drawable/border"/>
+                            android:layout_weight="1"
+                            android:background="@drawable/border"
+                            android:gravity="end"
+                            android:text="@string/age_label"
+                            android:textSize="20sp" />
 
                         <com.google.android.material.textfield.TextInputLayout
                             android:layout_width="match_parent"
@@ -141,8 +143,7 @@
                             <com.google.android.material.textfield.TextInputEditText
                                 android:id="@+id/edit_age"
                                 android:layout_width="fill_parent"
-                                android:layout_height="wrap_content"
-                                />
+                                android:layout_height="wrap_content" />
                         </com.google.android.material.textfield.TextInputLayout>
                     </TableRow>
 
@@ -151,32 +152,32 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    app:layout_constraintTop_toBottomOf="@+id/animal_info_table"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    android:layout_marginTop="32dp"
+                    android:layout_marginTop="24dp"
                     android:layout_marginBottom="16dp"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:orientation="horizontal"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/animal_info_table">
 
                     <Button
                         android:id="@+id/back_button"
-                        android:background="@drawable/button_background_back"
-                        android:textColor="#6672ff"
                         android:layout_width="105dp"
                         android:layout_height="50dp"
-                        android:textSize="16dp"
+                        android:layout_marginEnd="60dp"
+                        android:background="@drawable/button_background_back"
                         android:text="Back"
-                        android:layout_marginEnd="60dp" />
+                        android:textColor="#6672ff"
+                        android:textSize="16dp" />
 
                     <Button
                         android:id="@+id/save_button"
-                        android:background="@drawable/button_background_save"
                         android:layout_width="105dp"
                         android:layout_height="50dp"
-                        android:textSize="16dp"
+                        android:layout_marginStart="60dp"
+                        android:background="@drawable/button_background_save"
                         android:text="Save"
-                        android:layout_marginStart="60dp" />
+                        android:textSize="16dp" />
                 </LinearLayout>
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
