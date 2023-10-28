@@ -23,6 +23,7 @@ import java.util.List;
 public class LoginFragment extends Fragment {
 
     private Button createAccountButton;
+    private Button tempSeeUsers;
 
     // Listener for fragment change events
     @Nullable
@@ -43,10 +44,14 @@ public class LoginFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         this.createAccountButton = view.findViewById(R.id.createAccountButton);
+        this.tempSeeUsers = view.findViewById(R.id.tempSeeUsers);
 
-        // Set Back Button Listener
         createAccountButton.setOnClickListener(v -> {
             goToRegisterDisplay();
+        });
+
+        tempSeeUsers.setOnClickListener(v -> {
+            goToUsersDisplay();
         });
     }
     private void goToRegisterDisplay() {
@@ -58,38 +63,16 @@ public class LoginFragment extends Fragment {
 
     }
 
-    private void Login() {
+    private void goToUsersDisplay() {
 
-       /* Bundle bundle = new Bundle();
-        LoginFragment fragment = new LoginFragment();
+        Bundle bundle = new Bundle();
+        UsersFragment fragment = new UsersFragment();
         fragment.setArguments(bundle);
-        FragmentChangeListener.replaceFragment(fragment);*/
-        File file = new File(getContext().getFilesDir(), "out.txt");
-        if (file.exists()) {
-            List<String> usernames = new ArrayList<>();
+        FragmentChangeListener.replaceFragment(fragment);
 
-            try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file))) {
-                while (true) {
-                    try {
-                        User user = (User) inputStream.readObject();
-                        usernames.add(user.getUsername());
-                    } catch (EOFException e) {
-                        break; // Reached the end of the file
-                    }
-                }
-            } catch (IOException | ClassNotFoundException e) {
-                e.printStackTrace();
-            }
+    }
 
-            // Convert the list of usernames to a single string
-            StringBuilder usernameText = new StringBuilder();
-            for (String username : usernames) {
-                usernameText.append(username).append("\n");
-            }
-
-            // Display the usernames in the TextView
-           // appNameRegister.setText(usernameText.toString());
-        }
+    private void Login() {
 
     }
 

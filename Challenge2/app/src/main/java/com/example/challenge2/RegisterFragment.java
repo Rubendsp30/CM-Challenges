@@ -1,7 +1,5 @@
 package com.example.challenge2;
 
-import static android.content.Context.MODE_PRIVATE;
-
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -18,73 +16,40 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.io.EOFException;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.PrintStream;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.List;
 
 
 public class RegisterFragment extends Fragment {
-    // ViewModel for managing animal data
-    private UserViewModel userViewModel;
 
+    private UserViewModel userViewModel;
     private ImageButton backButton;
     private TextView appNameRegister;
     private EditText usernameRegister;
     private EditText passwordRegister;
     private EditText confirmPasswordRegister;
     private Button registerButton;
-
-    // Listener for fragment change events
-    @Nullable
-    private FragmentChangeListener FragmentChangeListener;
-
-    // Declare a TextWatcher instance to reuse
-    private TextWatcher inputTextWatcher = new TextWatcher() {
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-        }
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {
-            //validateInputLength(s.toString());
-        }
-
-        @Override
-        public void afterTextChanged(Editable s) {
-
-            //validateAllInput();
-        }
-    };
+    @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Initialize the UserViewModel using the ViewModelProvider
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         this.userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
-
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_register, container, false);
-
-        // Initialize the FragmentChangeListener
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
         return view;
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
-
         this.backButton = view.findViewById(R.id.backButton);
         this.appNameRegister = view.findViewById(R.id.appNameRegister);
         this.usernameRegister = view.findViewById(R.id.usernameRegister);
@@ -92,8 +57,50 @@ public class RegisterFragment extends Fragment {
         this.confirmPasswordRegister = view.findViewById(R.id.confirmPasswordRegister);
         this.registerButton = view.findViewById(R.id.registerButton);
 
-        passwordRegister.addTextChangedListener(inputTextWatcher);
-        confirmPasswordRegister.addTextChangedListener(inputTextWatcher);
+        usernameRegister.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateUsernameLength(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        passwordRegister.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validatePasswordLength(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
+
+        confirmPasswordRegister.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                validateConfirmPassword(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
 
         // Set Back Button Listener
         backButton.setOnClickListener(v -> {
@@ -101,13 +108,57 @@ public class RegisterFragment extends Fragment {
         });
 
         registerButton.setOnClickListener(v -> {
+
+        if (validateAllInput()){
             try {
                 registerUser();
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
+        }
+
         });
     }
+
+    private boolean validateUsernameLength(String input) {
+        if(input != null && input.length() >= 3 && input.length() <= 15){
+            return true;
+        }
+        else{
+            usernameRegister.setError("Username too short/long");
+        return false;
+        }
+    }
+
+    private boolean validatePasswordLength(String input) {
+        if(input != null && input.length() >= 5){
+            return true;
+        }
+        else{
+            passwordRegister.setError("Password too short");
+            return false;
+        }
+    }
+
+    private boolean validateConfirmPassword(String input) {
+        if(input.equals(passwordRegister.getText().toString())){
+            return true;
+        }
+        else{
+            confirmPasswordRegister.setError("Password not identical");
+            return false;
+        }
+    }
+
+    private boolean validateAllInput() {
+        boolean isUsernameValid = validateUsernameLength(usernameRegister.getText().toString());
+        boolean isPasswordValid = validatePasswordLength(passwordRegister.getText().toString());
+        boolean isConfirmPasswordValid = validateConfirmPassword(confirmPasswordRegister.getText().toString());
+
+       return isUsernameValid && isPasswordValid && isConfirmPasswordValid;
+    }
+
     private void goToLoginDisplay() {
 
         Bundle bundle = new Bundle();
@@ -121,12 +172,9 @@ public class RegisterFragment extends Fragment {
 
         String newUsername = usernameRegister.getText().toString();
         String newPassword = passwordRegister.getText().toString();
-        String newConfirmPassword = confirmPasswordRegister.getText().toString();
 
         // Create a new User object
         User newUser = new User(newUsername, newPassword);
-        //userViewModel.addUsers(newUser);
-
 
         File file = new File(getContext().getFilesDir(), "out.txt");
 
@@ -164,9 +212,11 @@ public class RegisterFragment extends Fragment {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            goToLoginDisplay();
         }
         else{
-            Toast.makeText(getActivity(), "Already exists!",
-                    Toast.LENGTH_LONG).show();}
+            usernameRegister.setError("Username already exists!");
+        }
+
     }
 }
