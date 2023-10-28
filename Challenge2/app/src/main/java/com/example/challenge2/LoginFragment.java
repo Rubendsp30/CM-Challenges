@@ -10,6 +10,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 
 import java.io.EOFException;
 import java.io.File;
@@ -23,19 +25,16 @@ import java.util.List;
 public class LoginFragment extends Fragment {
 
     private Button createAccountButton;
+    private Button loginButton;
     private Button tempSeeUsers;
-
-    // Listener for fragment change events
-    @Nullable
-    private FragmentChangeListener FragmentChangeListener;
+    private EditText usernameLogin;
+    private EditText passwordLogin;
+    @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_login, container, false);
-
-        // Initialize the FragmentChangeListener
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
         return view;
     }
@@ -45,6 +44,9 @@ public class LoginFragment extends Fragment {
 
         this.createAccountButton = view.findViewById(R.id.createAccountButton);
         this.tempSeeUsers = view.findViewById(R.id.tempSeeUsers);
+        this.loginButton = view.findViewById(R.id.loginButton);
+        this.usernameLogin = view.findViewById(R.id.usernameLogin);
+        this.passwordLogin = view.findViewById(R.id.passwordLogin);
 
         createAccountButton.setOnClickListener(v -> {
             goToRegisterDisplay();
@@ -52,6 +54,10 @@ public class LoginFragment extends Fragment {
 
         tempSeeUsers.setOnClickListener(v -> {
             goToUsersDisplay();
+        });
+
+        loginButton.setOnClickListener(v -> {
+            login();
         });
     }
     private void goToRegisterDisplay() {
@@ -72,8 +78,54 @@ public class LoginFragment extends Fragment {
 
     }
 
-    private void Login() {
+    private void login() {
+        String username = usernameLogin.getText().toString();
+        String password = passwordLogin.getText().toString();
 
+        List<User> users = readUsersFromFile();
+
+        boolean isAuthenticated = false;
+
+        for (User user : users) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                isAuthenticated = true;
+                break;
+            }
+        }
+
+        if (isAuthenticated) {
+
+            Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+        } else {
+            Toast.makeText(getContext(), "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
+        }
     }
+
+
+    private List<User> readUsersFromFile() {
+        List<User> users = new ArrayList<>();
+
+        try {
+            File file = new File(getContext().getFilesDir(), "out.txt");
+            FileInputStream fileInputStream = new FileInputStream(file);
+            ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+
+            while (true) {
+                try {
+                    User user = (User) objectInputStream.readObject();
+                    users.add(user);
+                } catch (EOFException e) {
+                    break;
+                }
+            }
+
+            objectInputStream.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return users;
+    }
+
 
 }
