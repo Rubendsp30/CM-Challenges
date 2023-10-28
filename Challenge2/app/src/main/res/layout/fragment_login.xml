@@ -33,31 +33,47 @@
             app:layout_constraintTop_toBottomOf="@+id/logoImgLogin"
             app:layout_constraintVertical_bias="0.100000024" />
 
-        <EditText
-            android:id="@+id/usernameLogin"
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/usernameLoginLayout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:hint="Username"
-            android:inputType="text"
+            style="@style/Widget.Design.TextInputLayout"
+            android:minEms="10"
+            android:textColorHint="@android:color/darker_gray"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@+id/appNameLogin"
-            app:layout_constraintVertical_bias="0.25" />
+            app:layout_constraintVertical_bias="0.087">
 
+        <EditText
+            android:id="@+id/usernameLogin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="Username"
+            android:inputType="text" />
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/passwordLoginLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/Widget.Design.TextInputLayout"
+            android:minEms="10"
+            android:textColorHint="@android:color/darker_gray"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/usernameLoginLayout"
+            app:layout_constraintVertical_bias="0.087"
+            app:passwordToggleEnabled="true">
         <EditText
             android:id="@+id/passwordLogin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:ems="10"
             android:hint="Password"
-            android:inputType="textPassword"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/usernameLogin"
-            app:layout_constraintVertical_bias="0.16000003" />
+            android:inputType="textPassword" />
+        </com.google.android.material.textfield.TextInputLayout>
 
         <Button
             android:id="@+id/loginButton"
@@ -68,7 +84,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.498"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/passwordLogin"
+            app:layout_constraintTop_toBottomOf="@+id/passwordLoginLayout"
             app:layout_constraintVertical_bias="0.134" />
 
         <Button

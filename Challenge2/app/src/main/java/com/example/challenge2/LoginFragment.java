@@ -11,6 +11,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class LoginFragment extends Fragment {
 
@@ -47,6 +55,41 @@ public class LoginFragment extends Fragment {
         RegisterFragment fragment = new RegisterFragment();
         fragment.setArguments(bundle);
         FragmentChangeListener.replaceFragment(fragment);
+
+    }
+
+    private void Login() {
+
+       /* Bundle bundle = new Bundle();
+        LoginFragment fragment = new LoginFragment();
+        fragment.setArguments(bundle);
+        FragmentChangeListener.replaceFragment(fragment);*/
+        File file = new File(getContext().getFilesDir(), "out.txt");
+        if (file.exists()) {
+            List<String> usernames = new ArrayList<>();
+
+            try (ObjectInputStream inputStream = new ObjectInputStream(new FileInputStream(file))) {
+                while (true) {
+                    try {
+                        User user = (User) inputStream.readObject();
+                        usernames.add(user.getUsername());
+                    } catch (EOFException e) {
+                        break; // Reached the end of the file
+                    }
+                }
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+            // Convert the list of usernames to a single string
+            StringBuilder usernameText = new StringBuilder();
+            for (String username : usernames) {
+                usernameText.append(username).append("\n");
+            }
+
+            // Display the usernames in the TextView
+           // appNameRegister.setText(usernameText.toString());
+        }
 
     }
 

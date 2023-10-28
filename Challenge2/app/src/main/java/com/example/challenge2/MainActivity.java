@@ -12,8 +12,8 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //loadFragment(new LoginFragment(), "fragment_login");
-        loadFragment(new RegisterFragment(), "fragment_register");
+        loadFragment(new LoginFragment(), "fragment_login");
+        //loadFragment(new RegisterFragment(), "fragment_register");
     }
 
     @Override
