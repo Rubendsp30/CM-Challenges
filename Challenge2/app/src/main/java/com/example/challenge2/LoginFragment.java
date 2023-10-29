@@ -95,7 +95,11 @@ public class LoginFragment extends Fragment {
 
         if (isAuthenticated) {
 
-            Toast.makeText(getContext(), "Login successful!", Toast.LENGTH_LONG).show();
+            Bundle bundle = new Bundle();
+            ListNotesFragment fragment = new ListNotesFragment();
+            fragment.setArguments(bundle);
+            FragmentChangeListener.replaceFragment(fragment);
+
         } else {
             Toast.makeText(getContext(), "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
         }

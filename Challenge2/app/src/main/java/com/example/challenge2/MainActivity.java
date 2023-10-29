@@ -13,7 +13,7 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
         setContentView(R.layout.activity_main);
 
         loadFragment(new LoginFragment(), "fragment_login");
-        //loadFragment(new RegisterFragment(), "fragment_register");
+        //loadFragment(new ListNotesFragment(), "fragment_list_notes");
     }
 
     @Override
