@@ -15,7 +15,14 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.Toast;
+
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.Firebase;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +30,10 @@ import java.util.List;
 
 public class EditNoteFragment extends Fragment {
 
-    @Nullable
-    private FragmentChangeListener FragmentChangeListener;
+
+    private EditText noteTitleEdit;
+    private EditText noteBodyEdit;
+    @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -39,7 +48,8 @@ public class EditNoteFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        this.noteTitleEdit = view.findViewById(R.id.noteTitleEdit);
+        this.noteBodyEdit = view.findViewById(R.id.noteBodyEdit);
     }
 
     @Override
@@ -59,10 +69,44 @@ public class EditNoteFragment extends Fragment {
 
             //Toast.makeText(getContext(), "New note", Toast.LENGTH_SHORT).show();
         }else if (item.getItemId() == R.id.action_save_note) {
-
-            Toast.makeText(getContext(), "Save note", Toast.LENGTH_SHORT).show();
+            saveNote();
+            //Toast.makeText(getContext(), "Save note", Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    public void saveNote(){
+        String newNoteTitle = noteTitleEdit.getText().toString();
+        String newNoteBody = noteBodyEdit.getText().toString();
+        if(newNoteTitle==null || newNoteTitle.isEmpty()){
+            noteTitleEdit.setError("Title is required");
+            return;
+        }
+
+        Note newNote = new Note(newNoteTitle, newNoteBody, "Miguel");
+        uploadNoteToFirebase(newNote);
+
+    }
+
+    public void uploadNoteToFirebase(Note note){
+
+        DocumentReference documentReference;
+        documentReference= FirebaseFirestore.getInstance().collection("notes").document("Miguel").collection("my_notes").document();
+
+        documentReference.set(note).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if(task.isSuccessful()){
+
+                    Toast.makeText(getContext(), "Uploaded", Toast.LENGTH_SHORT).show();
+                }else{
+                    Exception e = task.getException();
+                    Toast.makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+
+            }
+        });
+
     }
 
 
