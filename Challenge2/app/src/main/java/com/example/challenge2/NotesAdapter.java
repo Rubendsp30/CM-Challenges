@@ -2,38 +2,50 @@ package com.example.challenge2;
 
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+
 import java.util.List;
 
-public class NotesAdapter extends RecyclerView.Adapter<NotesViewHolder> {
-
-    List<Note> notes;
+public class NotesAdapter extends FirestoreRecyclerAdapter<Note,NotesAdapter.NotesViewHolder> {
     Context context;
 
-    public NotesAdapter(Context context, List<Note> notes) {
-        this.context = context;
-        this.notes = notes;
+    public NotesAdapter(@NonNull FirestoreRecyclerOptions<Note> options,Context context) {
+        super(options);
+        this.context= context;
+    }
+
+    @Override
+    protected void onBindViewHolder(@NonNull NotesViewHolder holder, int position, @NonNull Note note) {
+        holder.noteTitleCard.setText(note.getTitle());
+        holder.noteBodyCard.setText(note.getBody());
     }
 
     @NonNull
     @Override
     public NotesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new NotesViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.note_card,parent,false));
+        View view =LayoutInflater.from(parent.getContext()).inflate(R.layout.note_card,parent,false);
+        return new NotesViewHolder(view);
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull NotesViewHolder holder, int position) {
-        holder.noteTitleCard.setText(notes.get(position).getTitle());
-        holder.noteBodyCard.setText(notes.get(position).getBody());
+    public class NotesViewHolder extends RecyclerView.ViewHolder {
+        public final TextView noteTitleCard;
+        public final TextView noteBodyCard;
+
+        public NotesViewHolder(@NonNull View view) {
+            super(view);
+            this.noteTitleCard = view.findViewById(R.id.noteTitleCard);
+            this.noteBodyCard = view.findViewById(R.id.noteBodyCard);
+        }
 
     }
 
-    @Override
-    public int getItemCount() {
-        return notes.size();
-    }
 }

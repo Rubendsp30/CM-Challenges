@@ -1,9 +1,13 @@
 package com.example.challenge2;
 
+import com.google.firebase.firestore.PropertyName;
+
 public class Note {
 
     private String title;
+
     private String body;
+
     private String owner;
 
     public Note(String title, String body, String owner) {
@@ -12,6 +16,11 @@ public class Note {
         this.owner = owner;
     }
 
+    public Note() {
+        // Required by Firestore to create instances of the class
+    }
+
+    @PropertyName("owner")
     public String getOwner() {
         return owner;
     }
@@ -20,6 +29,7 @@ public class Note {
         this.owner = owner;
     }
 
+    @PropertyName("title")
     public String getTitle() {
         return title;
     }
@@ -27,7 +37,7 @@ public class Note {
     public void setTitle(String title) {
         this.title = title;
     }
-
+    @PropertyName("body")
     public String getBody() {
         return body;
     }

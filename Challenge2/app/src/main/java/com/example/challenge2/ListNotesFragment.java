@@ -1,6 +1,5 @@
 package com.example.challenge2;
 
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -8,7 +7,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,13 +18,16 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 
 
 public class ListNotesFragment extends Fragment {
 
     private RecyclerView notesListRecycler;
+    private User loggedInUser;
+    private NotesAdapter notesAdapter;
     @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
@@ -46,34 +47,10 @@ public class ListNotesFragment extends Fragment {
 
         Bundle args = getArguments();
         if (args != null) {
-            User loggedInUser = (User) args.getSerializable("loggedInUser");
-            if (loggedInUser != null) {
-                String username = loggedInUser.getUsername();
-            }
+            loggedInUser = (User) args.getSerializable("loggedInUser");
         }
 
-        List<Note> notes = new ArrayList<Note>();
-        notes.add(new Note("Title Note 1", "Body Note 1","Owner"));
-        notes.add(new Note("Title Note 2", "Body Note 2","Owner"));
-        notes.add(new Note("Title Note 3", "Body Note 3","Owner"));
-        notes.add(new Note("Title Note 4", "Body Note 4","Owner"));
-        notes.add(new Note("Title Note 5", "Body Note 5","Owner"));
-        notes.add(new Note("Title Note 6", "Body Note 6","Owner"));
-        notes.add(new Note("Title Note 7", "Body Note 7","Owner"));
-        notes.add(new Note("Title Note 8", "Body Note 8","Owner"));
-        notes.add(new Note("Title Note 9", "Body Note 9","Owner"));
-        notes.add(new Note("Title Note 10", "Body Note 10","Owner"));
-        notes.add(new Note("Title Note 11", "Body Note 11","Owner"));
-        notes.add(new Note("Title Note 12", "Body Note 12","Owner"));
-        notes.add(new Note("Title Note 13", "Body Note 13","Owner"));
-        notes.add(new Note("Title Note 14", "Body Note 14","Owner"));
-        notes.add(new Note("Title Note 15", "Body Note 15","Owner"));
-        notes.add(new Note("Title Note 16", "Body Note 16","Owner"));
-
-
-        //notesListRecycler.setLayoutManager(new LinearLayoutManager(getContext(),LinearLayoutManager.VERTICAL,false));
-        notesListRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        notesListRecycler.setAdapter(new NotesAdapter(requireContext(),notes));
+        setupRecyclerView();
     }
 
     @Override
@@ -87,13 +64,38 @@ public class ListNotesFragment extends Fragment {
         if (item.getItemId() == R.id.action_new_note) {
 
             Bundle bundle = new Bundle();
+            bundle.putSerializable("loggedInUser", loggedInUser);
             EditNoteFragment fragment = new EditNoteFragment();
             fragment.setArguments(bundle);
             FragmentChangeListener.replaceFragment(fragment);
 
-            //Toast.makeText(getContext(), "New note", Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    public void setupRecyclerView(){
+        Query query = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes");
+        FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>().setQuery(query,Note.class).build();
+        notesListRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
+        notesAdapter= new NotesAdapter(options,getContext());
+        notesListRecycler.setAdapter(notesAdapter);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        // Start listening for Firestore updates
+        if (notesAdapter != null) {
+            notesAdapter.startListening();
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (notesAdapter != null) {
+            notesAdapter.stopListening();
+        }
     }
 
 }

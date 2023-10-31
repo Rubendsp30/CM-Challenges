@@ -33,6 +33,7 @@ public class EditNoteFragment extends Fragment {
 
     private EditText noteTitleEdit;
     private EditText noteBodyEdit;
+    private User loggedInUser;
     @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
@@ -50,6 +51,11 @@ public class EditNoteFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         this.noteTitleEdit = view.findViewById(R.id.noteTitleEdit);
         this.noteBodyEdit = view.findViewById(R.id.noteBodyEdit);
+
+        Bundle args = getArguments();
+        if (args != null) {
+            loggedInUser = (User) args.getSerializable("loggedInUser");
+        }
     }
 
     @Override
@@ -62,17 +68,19 @@ public class EditNoteFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_back) {
 
-            Bundle bundle = new Bundle();
-            ListNotesFragment fragment = new ListNotesFragment();
-            fragment.setArguments(bundle);
-            FragmentChangeListener.replaceFragment(fragment);
-
-            //Toast.makeText(getContext(), "New note", Toast.LENGTH_SHORT).show();
+            goBackToListNotes();
         }else if (item.getItemId() == R.id.action_save_note) {
             saveNote();
-            //Toast.makeText(getContext(), "Save note", Toast.LENGTH_SHORT).show();
         }
         return true;
+    }
+
+    private void goBackToListNotes(){
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("loggedInUser", loggedInUser);
+        ListNotesFragment fragment = new ListNotesFragment();
+        fragment.setArguments(bundle);
+        FragmentChangeListener.replaceFragment(fragment);
     }
 
     public void saveNote(){
@@ -83,7 +91,7 @@ public class EditNoteFragment extends Fragment {
             return;
         }
 
-        Note newNote = new Note(newNoteTitle, newNoteBody, "Miguel");
+        Note newNote = new Note(newNoteTitle, newNoteBody, loggedInUser.getUsername());
         uploadNoteToFirebase(newNote);
 
     }
@@ -91,7 +99,7 @@ public class EditNoteFragment extends Fragment {
     public void uploadNoteToFirebase(Note note){
 
         DocumentReference documentReference;
-        documentReference= FirebaseFirestore.getInstance().collection("notes").document("Miguel").collection("my_notes").document();
+        documentReference= FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document();
 
         documentReference.set(note).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -99,6 +107,7 @@ public class EditNoteFragment extends Fragment {
                 if(task.isSuccessful()){
 
                     Toast.makeText(getContext(), "Uploaded", Toast.LENGTH_SHORT).show();
+                    goBackToListNotes();
                 }else{
                     Exception e = task.getException();
                     Toast.makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
