@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="EditNoteFragment">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbarEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#6750a4"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <EditText
+            android:id="@+id/noteTitleEdit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Title"
+            android:textSize="20sp"
+            android:textStyle="bold"/>
+        <EditText
+            android:id="@+id/noteBodyEdit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:hint="Start typing..."
+            android:gravity="top|left"/>
+
+    </LinearLayout>
+
+
+
+
+
+</LinearLayout>

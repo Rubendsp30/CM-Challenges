@@ -83,19 +83,19 @@ public class LoginFragment extends Fragment {
         String password = passwordLogin.getText().toString();
 
         List<User> users = readUsersFromFile();
-
-        boolean isAuthenticated = false;
+        User loggedInUser = null;
 
         for (User user : users) {
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                isAuthenticated = true;
+                loggedInUser = user;
                 break;
             }
         }
 
-        if (isAuthenticated) {
+        if (loggedInUser != null) {
 
             Bundle bundle = new Bundle();
+            bundle.putSerializable("loggedInUser", loggedInUser);
             ListNotesFragment fragment = new ListNotesFragment();
             fragment.setArguments(bundle);
             FragmentChangeListener.replaceFragment(fragment);

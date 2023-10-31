@@ -4,10 +4,20 @@ public class Note {
 
     private String title;
     private String body;
+    private String owner;
 
-    public Note(String title, String body) {
+    public Note(String title, String body, String owner) {
         this.title = title;
         this.body = body;
+        this.owner = owner;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
     }
 
     public String getTitle() {
