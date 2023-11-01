@@ -34,6 +34,10 @@ public class EditNoteFragment extends Fragment {
     private EditText noteTitleEdit;
     private EditText noteBodyEdit;
     private User loggedInUser;
+    private String title;
+    private String body;
+    private String docId;
+    boolean isEditMode = false;
     @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
@@ -55,7 +59,19 @@ public class EditNoteFragment extends Fragment {
         Bundle args = getArguments();
         if (args != null) {
             loggedInUser = (User) args.getSerializable("loggedInUser");
+            title = (String) args.getSerializable("title");
+            body = (String) args.getSerializable("body");
+            docId = (String) args.getSerializable("docId");
         }
+
+        noteTitleEdit.setText(title);
+        noteBodyEdit.setText(body);
+
+        if(docId!=null && !docId.isEmpty()){
+            isEditMode = true;
+        }
+
+        // Toast.makeText(getContext(), title, Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -99,13 +115,15 @@ public class EditNoteFragment extends Fragment {
     public void uploadNoteToFirebase(Note note){
 
         DocumentReference documentReference;
-        documentReference= FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document();
+        if(isEditMode){
+            documentReference= FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
+        }
+        else{documentReference= FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document();}
 
         documentReference.set(note).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if(task.isSuccessful()){
-
                     Toast.makeText(getContext(), "Uploaded", Toast.LENGTH_SHORT).show();
                     goBackToListNotes();
                 }else{

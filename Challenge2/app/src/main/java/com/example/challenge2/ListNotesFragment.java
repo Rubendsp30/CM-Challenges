@@ -77,7 +77,7 @@ public class ListNotesFragment extends Fragment {
         Query query = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes");
         FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>().setQuery(query,Note.class).build();
         notesListRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        notesAdapter= new NotesAdapter(options,getContext());
+        notesAdapter= new NotesAdapter(options,getContext(),FragmentChangeListener,loggedInUser);
         notesListRecycler.setAdapter(notesAdapter);
     }
 
