@@ -53,6 +53,11 @@ public class NotesAdapter extends FirestoreRecyclerAdapter<Note,NotesAdapter.Not
                 Toast.makeText(context, "NULL", Toast.LENGTH_SHORT).show();
             }
         });
+
+        holder.itemView.setOnLongClickListener((v)->{
+            Toast.makeText(context, "LONG", Toast.LENGTH_SHORT).show();
+            return true;
+        });
     }
 
     @NonNull
