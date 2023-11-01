@@ -71,7 +71,6 @@ public class EditNoteFragment extends Fragment {
             isEditMode = true;
         }
 
-        // Toast.makeText(getContext(), title, Toast.LENGTH_SHORT).show();
     }
 
     @Override

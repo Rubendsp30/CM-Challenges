@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,6 +19,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -29,10 +31,14 @@ public class ListNotesFragment extends Fragment {
     private User loggedInUser;
     private NotesAdapter notesAdapter;
     @Nullable private FragmentChangeListener FragmentChangeListener;
+    private View overlayView;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_list_notes, container, false);
+
+        overlayView = v.findViewById(R.id.overlayView);
+
         Toolbar fragmentToolbar = v.findViewById(R.id.toolbarList);
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
         ((AppCompatActivity) requireActivity()).setSupportActionBar(fragmentToolbar);
@@ -44,6 +50,8 @@ public class ListNotesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         this.notesListRecycler = view.findViewById(R.id.notesListRecycler);
+
+
 
         Bundle args = getArguments();
         if (args != null) {
@@ -77,7 +85,7 @@ public class ListNotesFragment extends Fragment {
         Query query = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes");
         FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>().setQuery(query,Note.class).build();
         notesListRecycler.setLayoutManager(new LinearLayoutManager(getContext()));
-        notesAdapter= new NotesAdapter(options,getContext(),FragmentChangeListener,loggedInUser);
+        notesAdapter= new NotesAdapter(options,getContext(),FragmentChangeListener,loggedInUser,getChildFragmentManager());
         notesListRecycler.setAdapter(notesAdapter);
     }
 
@@ -97,5 +105,21 @@ public class ListNotesFragment extends Fragment {
             notesAdapter.stopListening();
         }
     }
+
+
+    public void showOverlay() {
+        Log.d("Overlay", "Called Showing Overlay");
+        overlayView.setVisibility(View.VISIBLE);
+    }
+
+    public void hideOverlay() {
+        Log.d("Bye Overlay", "Overlay Hidden");
+        overlayView.setVisibility(View.GONE);
+    }
+    public FirestoreRecyclerAdapter<Note, NotesAdapter.NotesViewHolder> getNotesAdapter() {
+        // Replace 'notesAdapter' with the actual name of your adapter instance
+        return notesAdapter;
+    }
+
 
 }

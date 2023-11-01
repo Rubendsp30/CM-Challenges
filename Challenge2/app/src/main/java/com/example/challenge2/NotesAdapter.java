@@ -23,13 +23,16 @@ public class NotesAdapter extends FirestoreRecyclerAdapter<Note,NotesAdapter.Not
     Context context;
     @Nullable
     private FragmentChangeListener FragmentChangeListener;
+    @Nullable
+    private final FragmentManager fragmentManager;
     private User loggedInUser;
 
-    public NotesAdapter(@NonNull FirestoreRecyclerOptions<Note> options,Context context, FragmentChangeListener FragmentChangeListener, User loggedInUser) {
+    public NotesAdapter(@NonNull FirestoreRecyclerOptions<Note> options,Context context, FragmentChangeListener FragmentChangeListener, User loggedInUser,FragmentManager fragmentManager) {
         super(options);
         this.context= context;
         this.FragmentChangeListener = FragmentChangeListener;
         this.loggedInUser = loggedInUser;
+        this.fragmentManager = fragmentManager;
 
     }
 
@@ -49,13 +52,22 @@ public class NotesAdapter extends FirestoreRecyclerAdapter<Note,NotesAdapter.Not
             fragment.setArguments(bundle);
             if (FragmentChangeListener != null) {
                 FragmentChangeListener.replaceFragment(fragment);
-            } else {
-                Toast.makeText(context, "NULL", Toast.LENGTH_SHORT).show();
             }
         });
 
         holder.itemView.setOnLongClickListener((v)->{
-            Toast.makeText(context, "LONG", Toast.LENGTH_SHORT).show();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("loggedInUser", loggedInUser);
+            bundle.putSerializable("title", note.getTitle());
+            String docId = this.getSnapshots().getSnapshot(position).getId();
+            bundle.putSerializable("docId", docId);
+            PopUpFragment fragment = new PopUpFragment();
+            fragment.setArguments(bundle);
+
+            if (fragmentManager != null) {
+                fragment.show(fragmentManager, "PopUpFragment");
+            }
+
             return true;
         });
     }
