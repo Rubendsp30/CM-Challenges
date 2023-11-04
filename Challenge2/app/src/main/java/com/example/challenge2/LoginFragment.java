@@ -1,11 +1,13 @@
 package com.example.challenge2;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,20 +23,18 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class LoginFragment extends Fragment {
 
-    private Button createAccountButton;
-    private Button loginButton;
-    private Button tempSeeUsers;
     private EditText usernameLogin;
     private EditText passwordLogin;
     @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the login fragment layout
         View view = inflater.inflate(R.layout.fragment_login, container, false);
+
+        // Initialize the FragmentChangeListener
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
         return view;
     }
@@ -42,75 +42,72 @@ public class LoginFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        this.createAccountButton = view.findViewById(R.id.createAccountButton);
-        this.tempSeeUsers = view.findViewById(R.id.tempSeeUsers);
-        this.loginButton = view.findViewById(R.id.loginButton);
+        // Initialize UI elements and set click listeners
+        Button createAccountButton = view.findViewById(R.id.createAccountButton);
+        Button tempSeeUsers = view.findViewById(R.id.tempSeeUsers);
+        Button loginButton = view.findViewById(R.id.loginButton);
         this.usernameLogin = view.findViewById(R.id.usernameLogin);
         this.passwordLogin = view.findViewById(R.id.passwordLogin);
 
-        createAccountButton.setOnClickListener(v -> {
-            goToRegisterDisplay();
-        });
-
-        tempSeeUsers.setOnClickListener(v -> {
-            goToUsersDisplay();
-        });
-
-        loginButton.setOnClickListener(v -> {
-            login();
-        });
+        createAccountButton.setOnClickListener(v -> goToRegisterDisplay());
+        tempSeeUsers.setOnClickListener(v -> goToUsersDisplay());
+        loginButton.setOnClickListener(v -> login());
     }
+
     private void goToRegisterDisplay() {
+        // Navigate to the registration fragment
 
-        Bundle bundle = new Bundle();
-        RegisterFragment fragment = new RegisterFragment();
-        fragment.setArguments(bundle);
-        FragmentChangeListener.replaceFragment(fragment);
-
+        if (FragmentChangeListener != null) {
+            FragmentChangeListener.replaceFragment(new RegisterFragment());
+        } else {
+            // Handle the case where FragmentChangeListener is null
+            Log.e("LoginFragment-goToRegisterDisplay", "FragmentChangeListener is null. Unable to replace the fragment.");
+        }
     }
 
     private void goToUsersDisplay() {
+        // Navigate to the users fragment
 
-        Bundle bundle = new Bundle();
-        UsersFragment fragment = new UsersFragment();
-        fragment.setArguments(bundle);
-        FragmentChangeListener.replaceFragment(fragment);
-
+        if (FragmentChangeListener != null) {
+            FragmentChangeListener.replaceFragment(new UsersFragment());
+        } else {
+            // Handle the case where FragmentChangeListener is null
+            Log.e("LoginFragment-goToUsersDisplay", "FragmentChangeListener is null. Unable to replace the fragment.");
+        }
     }
 
     private void login() {
+        // Handle the login process
+
         String username = usernameLogin.getText().toString();
         String password = passwordLogin.getText().toString();
 
         List<User> users = readUsersFromFile();
-        User loggedInUser = null;
 
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                loggedInUser = user;
-                break;
-            }
-        }
+        User loggedInUser = findUserInList(users, username, password);
 
         if (loggedInUser != null) {
-
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("loggedInUser", loggedInUser);
-            ListNotesFragment fragment = new ListNotesFragment();
-            fragment.setArguments(bundle);
-            FragmentChangeListener.replaceFragment(fragment);
-
+            // If login is successful, navigate to the list notes fragment
+            navigateToListNotesFragment(loggedInUser);
         } else {
+            // Display a login failed message
             Toast.makeText(getContext(), "Login failed. Please check your credentials.", Toast.LENGTH_SHORT).show();
         }
     }
 
-
     private List<User> readUsersFromFile() {
+        // Read user data from a file and return a list of users
+
         List<User> users = new ArrayList<>();
 
         try {
-            File file = new File(getContext().getFilesDir(), "users.txt");
+            Context context = getContext();
+            File file = null;
+
+            if (context != null) {
+                file = new File(context.getFilesDir(), "users.txt");
+            }
+
             FileInputStream fileInputStream = new FileInputStream(file);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 
@@ -131,5 +128,24 @@ public class LoginFragment extends Fragment {
         return users;
     }
 
+    private User findUserInList(List<User> users, String username, String password) {
+        for (User user : users) {
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                return user;
+            }
+        }
+        return null;
+    }
 
+    private void navigateToListNotesFragment(User loggedInUser) {
+        if (FragmentChangeListener != null) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("loggedInUser", loggedInUser);
+            ListNotesFragment fragment = new ListNotesFragment();
+            fragment.setArguments(bundle);
+            FragmentChangeListener.replaceFragment(fragment);
+        } else {
+            Log.e("LoginFragment-login", "FragmentChangeListener is null. Unable to replace the fragment.");
+        }
+    }
 }
