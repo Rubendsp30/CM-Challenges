@@ -1,21 +1,21 @@
 package com.example.challenge2;
 
+import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.ViewModelProvider;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 
 import java.io.EOFException;
 import java.io.File;
@@ -27,36 +27,35 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class RegisterFragment extends Fragment {
 
-    private UserViewModel userViewModel;
-    private ImageButton backButton;
-    private TextView appNameRegister;
     private EditText usernameRegister;
     private EditText passwordRegister;
     private EditText confirmPasswordRegister;
-    private Button registerButton;
     @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
 
-        this.userViewModel = new ViewModelProvider(requireActivity()).get(UserViewModel.class);
+        // Inflate the fragment's layout
         View view = inflater.inflate(R.layout.fragment_register, container, false);
+
+        // Get FragmentChangeListener from the parent activity
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
         return view;
     }
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        this.backButton = view.findViewById(R.id.backButton);
-        this.appNameRegister = view.findViewById(R.id.appNameRegister);
+
+        // Initialize UI elements
+        ImageButton backButton = view.findViewById(R.id.backButton);
         this.usernameRegister = view.findViewById(R.id.usernameRegister);
         this.passwordRegister = view.findViewById(R.id.passwordRegister);
         this.confirmPasswordRegister = view.findViewById(R.id.confirmPasswordRegister);
-        this.registerButton = view.findViewById(R.id.registerButton);
+        Button registerButton = view.findViewById(R.id.registerButton);
 
+        // Add text change listeners for input validation
         usernameRegister.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -103,49 +102,42 @@ public class RegisterFragment extends Fragment {
         });
 
         // Set Back Button Listener
-        backButton.setOnClickListener(v -> {
-            goToLoginDisplay();
-        });
+        backButton.setOnClickListener(v -> goToLoginDisplay());
 
+        // Set Register Button Listener
         registerButton.setOnClickListener(v -> {
-
-        if (validateAllInput()){
-            try {
-                registerUser();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            if (validateAllInput()) {
+                try {
+                    registerUser();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
-
-        }
-
         });
     }
 
     private boolean validateUsernameLength(String input) {
-        if(input != null && input.length() >= 3 && input.length() <= 15){
+        if (input != null && input.length() >= 3 && input.length() <= 15) {
             return true;
-        }
-        else{
+        } else {
             usernameRegister.setError("Username too short/long");
-        return false;
+            return false;
         }
     }
 
     private boolean validatePasswordLength(String input) {
-        if(input != null && input.length() >= 5){
+        if (input != null && input.length() >= 5) {
             return true;
-        }
-        else{
+        } else {
             passwordRegister.setError("Password too short");
             return false;
         }
     }
 
     private boolean validateConfirmPassword(String input) {
-        if(input.equals(passwordRegister.getText().toString())){
+        if (input.equals(passwordRegister.getText().toString())) {
             return true;
-        }
-        else{
+        } else {
             confirmPasswordRegister.setError("Password not identical");
             return false;
         }
@@ -156,33 +148,42 @@ public class RegisterFragment extends Fragment {
         boolean isPasswordValid = validatePasswordLength(passwordRegister.getText().toString());
         boolean isConfirmPasswordValid = validateConfirmPassword(confirmPasswordRegister.getText().toString());
 
-       return isUsernameValid && isPasswordValid && isConfirmPasswordValid;
+        return isUsernameValid && isPasswordValid && isConfirmPasswordValid;
     }
 
     private void goToLoginDisplay() {
-
-        Bundle bundle = new Bundle();
-        LoginFragment fragment = new LoginFragment();
-        fragment.setArguments(bundle);
-        FragmentChangeListener.replaceFragment(fragment);
-
+        if (FragmentChangeListener != null) {
+            Bundle bundle = new Bundle();
+            LoginFragment fragment = new LoginFragment();
+            fragment.setArguments(bundle);
+            FragmentChangeListener.replaceFragment(fragment);
+        } else {
+            // Handle the case where FragmentChangeListener is null
+            Log.e("RegisterFragment", "FragmentChangeListener is null. Unable to replace the fragment.");
+        }
     }
 
     private void registerUser() throws IOException {
-
         String newUsername = usernameRegister.getText().toString();
         String newPassword = passwordRegister.getText().toString();
 
         // Create a new User object
         User newUser = new User(newUsername, newPassword);
 
-        File file = new File(getContext().getFilesDir(), "out.txt");
+        Context context = getContext();
+        File file = null;
 
-        // Check if the file exists, and create it if it doesn't
-        if (!file.exists()) {
-            file.createNewFile();
+        if (context != null) {
+            file = new File(context.getFilesDir(), "users.txt");
         }
 
+        // Check if the file exists, and create it if it doesn't
+        if (file != null && !file.exists()) {
+            boolean fileCreated = file.createNewFile();
+            if (!fileCreated) {
+                Log.e("RegisterFragment", "File creation failed for 'users.txt'");
+            }
+        }
         List<User> existingUsers = new ArrayList<>();
 
         // Read the existing user data from the file
@@ -198,8 +199,17 @@ public class RegisterFragment extends Fragment {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+
         // Check if the new user already exists
-        boolean userExists = existingUsers.stream().anyMatch(u -> u.getUsername().equals(newUsername));
+        // Check if the new user already exists
+        boolean userExists = false;
+        for (User user : existingUsers) {
+            if (user.getUsername().equals(newUsername)) {
+                userExists = true;
+                break;
+            }
+        }
+
         if (!userExists) {
             // Append the new user
             existingUsers.add(newUser);
@@ -213,10 +223,8 @@ public class RegisterFragment extends Fragment {
                 e.printStackTrace();
             }
             goToLoginDisplay();
-        }
-        else{
+        } else {
             usernameRegister.setError("Username already exists!");
         }
-
     }
 }

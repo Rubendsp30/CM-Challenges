@@ -110,7 +110,7 @@ public class LoginFragment extends Fragment {
         List<User> users = new ArrayList<>();
 
         try {
-            File file = new File(getContext().getFilesDir(), "out.txt");
+            File file = new File(getContext().getFilesDir(), "users.txt");
             FileInputStream fileInputStream = new FileInputStream(file);
             ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
 

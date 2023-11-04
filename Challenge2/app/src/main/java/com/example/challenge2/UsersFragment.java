@@ -61,7 +61,7 @@ public class UsersFragment extends Fragment {
 
     private void displayUsers() {
 
-        File file = new File(getContext().getFilesDir(), "out.txt");
+        File file = new File(getContext().getFilesDir(), "users.txt");
         if (file.exists()) {
             List<String> userInfos = new ArrayList<>();
 
