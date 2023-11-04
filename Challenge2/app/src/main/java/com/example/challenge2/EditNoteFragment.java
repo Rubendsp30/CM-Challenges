@@ -7,8 +7,8 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -18,30 +18,24 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.Firebase;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class EditNoteFragment extends Fragment {
 
-
+    // Declare instance variables
     private EditText noteTitleEdit;
     private EditText noteBodyEdit;
     private User loggedInUser;
     private String title;
     private String body;
     private String docId;
-    boolean isEditMode = false;
+    private boolean isEditMode = false;
     @Nullable private FragmentChangeListener FragmentChangeListener;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        // Inflate the fragment's layout, set the toolbar, and enable the menu
         View v = inflater.inflate(R.layout.fragment_edit_note, container, false);
         Toolbar fragmentToolbar = v.findViewById(R.id.toolbarEdit);
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
@@ -56,84 +50,89 @@ public class EditNoteFragment extends Fragment {
         this.noteTitleEdit = view.findViewById(R.id.noteTitleEdit);
         this.noteBodyEdit = view.findViewById(R.id.noteBodyEdit);
 
+        // Retrieve arguments passed to the fragment
         Bundle args = getArguments();
         if (args != null) {
             loggedInUser = (User) args.getSerializable("loggedInUser");
-            title = (String) args.getSerializable("title");
-            body = (String) args.getSerializable("body");
-            docId = (String) args.getSerializable("docId");
+            title = args.getString("title");
+            body = args.getString("body");
+            docId = args.getString("docId");
         }
 
+        // Set the text fields with the retrieved data
         noteTitleEdit.setText(title);
         noteBodyEdit.setText(body);
 
-        if(docId!=null && !docId.isEmpty()){
+        // Check if it's an edit mode
+        if (docId != null && !docId.isEmpty()) {
             isEditMode = true;
         }
-
     }
 
     @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+        // Inflate the menu for this fragment
         inflater.inflate(R.menu.edit_bar, menu);
         super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle menu item selections
         if (item.getItemId() == R.id.action_back) {
-
             goBackToListNotes();
-        }else if (item.getItemId() == R.id.action_save_note) {
+        } else if (item.getItemId() == R.id.action_save_note) {
             saveNote();
         }
         return true;
     }
 
-    private void goBackToListNotes(){
-        Bundle bundle = new Bundle();
-        bundle.putSerializable("loggedInUser", loggedInUser);
-        ListNotesFragment fragment = new ListNotesFragment();
-        fragment.setArguments(bundle);
-        FragmentChangeListener.replaceFragment(fragment);
+    private void goBackToListNotes() {
+        // Navigate back to the list of notes
+        if (FragmentChangeListener != null) {
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("loggedInUser", loggedInUser);
+            ListNotesFragment fragment = new ListNotesFragment();
+            fragment.setArguments(bundle);
+            FragmentChangeListener.replaceFragment(fragment);
+        } else {
+            Log.e("EditNotesFragment", "FragmentChangeListener is null. Unable to replace the fragment.");
+        }
     }
 
-    public void saveNote(){
+    public void saveNote() {
+        // Save the note to Firebase after validation
         String newNoteTitle = noteTitleEdit.getText().toString();
         String newNoteBody = noteBodyEdit.getText().toString();
-        if(newNoteTitle==null || newNoteTitle.isEmpty()){
+        if (newNoteTitle.isEmpty()) {
             noteTitleEdit.setError("Title is required");
             return;
         }
-
         Note newNote = new Note(newNoteTitle, newNoteBody, loggedInUser.getUsername());
         uploadNoteToFirebase(newNote);
-
     }
 
-    public void uploadNoteToFirebase(Note note){
-
+    public void uploadNoteToFirebase(Note note) {
+        // Upload the note data to Firestore
         DocumentReference documentReference;
-        if(isEditMode){
-            documentReference= FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
+        if (isEditMode) {
+            documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
+        } else {
+            documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document();
         }
-        else{documentReference= FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document();}
 
-        documentReference.set(note).addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if(task.isSuccessful()){
-                    Toast.makeText(getContext(), "Uploaded", Toast.LENGTH_SHORT).show();
-                    goBackToListNotes();
-                }else{
-                    Exception e = task.getException();
+        documentReference.set(note).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(getContext(), "Uploaded", Toast.LENGTH_SHORT).show();
+                goBackToListNotes();
+            } else {
+                Exception e = task.getException();
+                if (e != null) {
                     Toast.makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Upload Failed with no error message.", Toast.LENGTH_SHORT).show();
                 }
-
             }
         });
-
     }
-
-
 }
