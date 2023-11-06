@@ -3,9 +3,12 @@ package com.example.challenge2;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -19,6 +22,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class PopUpFragment extends DialogFragment {
+    private EditText editTitlePopUp;
     private User loggedInUser;
     private String title;
     private String docId;
@@ -33,8 +37,10 @@ public class PopUpFragment extends DialogFragment {
         View dialogView = inflater.inflate(R.layout.note_pop_up, null);
 
         // Find buttons in the dialog layout.
-        Button editPopUpButton = dialogView.findViewById(R.id.editPopUpButton);
+        this.editTitlePopUp = dialogView.findViewById(R.id.editTitlePopUp);
         Button erasePopUpButton = dialogView.findViewById(R.id.erasePopUpButton);
+        Button savePopUpButton = dialogView.findViewById(R.id.savePopUpButton);
+        savePopUpButton.setEnabled(false);
 
         // Get arguments passed to this fragment.
         Bundle args = getArguments();
@@ -47,8 +53,29 @@ public class PopUpFragment extends DialogFragment {
         // Set the view for the AlertDialog.
         builder.setView(dialogView);
 
+        editTitlePopUp.setText(title);
+
+        editTitlePopUp.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                savePopUpButton.setEnabled(true);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+
+            }
+        });
+
         // Set a click listener for the erase button.
         erasePopUpButton.setOnClickListener((v) -> eraseNote());
+
+        // Set a click listener for the save changes button.
+        savePopUpButton.setOnClickListener((v) -> saveNewTitle());
 
         // Show an overlay in the parent fragment when the dialog is displayed.
         ((ListNotesFragment) getParentFragment()).showOverlay();
@@ -90,5 +117,31 @@ public class PopUpFragment extends DialogFragment {
         if (adapter != null) {
             adapter.notifyDataSetChanged();
         }
+    }
+
+    public void saveNewTitle() {
+        String newNoteTitle = editTitlePopUp.getText().toString();
+        if (newNoteTitle.isEmpty()) {
+            editTitlePopUp.setError("Title is required");
+            return;
+        }
+
+        // Upload the note data to Firestore
+        DocumentReference documentReference;
+        documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
+
+        documentReference.update("title", newNoteTitle).addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                Toast.makeText(getContext(), "Updated", Toast.LENGTH_SHORT).show();
+                dismiss();
+            } else {
+                Exception e = task.getException();
+                if (e != null) {
+                    Toast.makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(getContext(), "Upload Failed with no error message.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 }

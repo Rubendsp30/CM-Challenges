@@ -1,26 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:paddingVertical="10dp"
-    android:paddingHorizontal="10dp"
-    android:orientation="vertical"
+    android:paddingHorizontal="20dp"
     android:background="@drawable/rounded_corner"
     >
-
-    <Button
-        android:id="@+id/editPopUpButton"
+    <TextView
+        android:id="@+id/titlePopUp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="EDIT"
-        android:layout_gravity="center" />
+        android:text="Edit Title"
+        app:layout_constraintTop_toTopOf="parent"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        />
+
+    <EditText
+        android:id="@+id/editTitlePopUp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toBottomOf="@+id/titlePopUp"
+        tools:layout_editor_absoluteX="10dp"
+        android:hint="New note title" />
 
     <Button
         android:id="@+id/erasePopUpButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="ERASE"
+        android:layout_marginVertical="10dp"
         android:layout_gravity="center"
-/>
+        android:text="Erase note"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTitlePopUp" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/savePopUpButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginVertical="10dp"
+        android:layout_gravity="end"
+        android:text="Save Changes"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTitlePopUp" />
+
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
