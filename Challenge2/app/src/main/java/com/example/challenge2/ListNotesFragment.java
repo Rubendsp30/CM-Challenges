@@ -73,8 +73,15 @@ public class ListNotesFragment extends Fragment {
                 fragment.setArguments(bundle);
                 FragmentChangeListener.replaceFragment(fragment); // Replace the current fragment with the EditNoteFragment
             } else {
-                Log.e("ListNotesFragment", "FragmentChangeListener is null. Unable to replace the fragment.");
+                Log.e("ListNotesFragment-New Note", "FragmentChangeListener is null. Unable to replace the fragment.");
             }
+        } else if (item.getItemId() == R.id.action_log_out) {
+            if (FragmentChangeListener != null) {
+                FragmentChangeListener.replaceFragment(new LoginFragment()); // Replace the current fragment with the LoginFragment
+            } else {
+                Log.e("ListNotesFragment-Log Out", "FragmentChangeListener is null. Unable to replace the fragment.");
+            }
+
         }
         return true;
     }
