@@ -117,7 +117,7 @@ public class PopUpFragment extends DialogFragment {
             return;
         }
 
-        notesViewModel.updateNoteTitle(loggedInUser.getUsername(), docId,newNoteTitle);
+        notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, null);
         dismiss();
     }
 }

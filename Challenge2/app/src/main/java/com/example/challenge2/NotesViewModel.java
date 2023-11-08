@@ -13,7 +13,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -61,13 +63,6 @@ public class NotesViewModel extends ViewModel {
         return notesLiveData;
     }
 
-    public void addOrUpdateNote(String username, Note note, String docId) {
-        if (docId == null || docId.isEmpty()) {
-            addNote(username, note);
-        } else {
-            updateNote(username, docId, note);
-        }
-    }
     public void addNote(String username, Note note) {
         // Offload Firestore write operation to the background thread
         networkExecutor.execute(() -> {
@@ -88,36 +83,24 @@ public class NotesViewModel extends ViewModel {
         });
     }
 
-    private void updateNote(String username, String docId, Note note) {
+    public void updateNote(String username, String docId, String newTitle, String newBody) {
         // Offload Firestore update operation to the background thread
         networkExecutor.execute(() -> {
-            note.setNoteId(docId);
-            firestore.collection("notes")
+            DocumentReference noteRef = firestore.collection("notes")
                     .document(username)
                     .collection("my_notes")
-                    .document(docId)
-                    .set(note)
-                    .addOnSuccessListener(aVoid -> {
-                        // Handle success, e.g., log the reference or show a success message
-                    })
-                    .addOnFailureListener(e -> {
-                        // Handle failure, e.g., log the error or show an error message
-                    });
-        });
-    }
+                    .document(docId);
 
-    //Maybe mix updateNote and updateNoteTitle in one function
-    public void updateNoteTitle(String username, String docId, String newTitle) {
-        // Offload Firestore update operation to the background thread
-        networkExecutor.execute(() -> {
+            Map<String, Object> updates = new HashMap<>();
+            updates.put("title", newTitle);
 
-            firestore.collection("notes")
-                    .document(username)
-                    .collection("my_notes")
-                    .document(docId)
-                    .update("title", newTitle)
+            if (newBody != null) {
+                updates.put("body", newBody);
+            }
+
+            noteRef.update(updates)
                     .addOnSuccessListener(aVoid -> {
-                        //Temporary Fix
+                        // Temporary Fix
                         getNotes(username);
                         // Handle success, e.g., log the reference or show a success message
                     })
@@ -156,7 +139,6 @@ public class NotesViewModel extends ViewModel {
                     });
         });
     }
-
 
     public void clearNotes() {
         // Clear the notes data stored in the View Model when doing LogOut
