@@ -201,7 +201,6 @@ public class RegisterFragment extends Fragment {
         }
 
         // Check if the new user already exists
-        // Check if the new user already exists
         boolean userExists = false;
         for (User user : existingUsers) {
             if (user.getUsername().equals(newUsername)) {

@@ -20,7 +20,7 @@ import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-
+//This will be deleted, only used for Debugging
 public class UsersFragment extends Fragment {
 
     private Button backLoginButton;

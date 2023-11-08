@@ -119,23 +119,5 @@ public class PopUpFragment extends DialogFragment {
 
         notesViewModel.updateNoteTitle(loggedInUser.getUsername(), docId,newNoteTitle);
         dismiss();
-
-        // Upload the note data to Firestore
-        /*DocumentReference documentReference;
-        documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
-
-        documentReference.update("title", newNoteTitle).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(getContext(), "Updated", Toast.LENGTH_SHORT).show();
-                dismiss();
-            } else {
-                Exception e = task.getException();
-                if (e != null) {
-                    Toast.makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getContext(), "Upload Failed with no error message.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });*/
     }
 }

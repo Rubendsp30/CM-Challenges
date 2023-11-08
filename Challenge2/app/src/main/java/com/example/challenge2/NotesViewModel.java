@@ -1,6 +1,5 @@
 package com.example.challenge2;
 
-import android.app.Application;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
@@ -21,9 +20,9 @@ import java.util.concurrent.Executors;
 public class NotesViewModel extends ViewModel {
 
     private FirebaseFirestore firestore;
-    private MutableLiveData<List<Note>> notesLiveData = new MutableLiveData<>();
-    private ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
-    private Handler uiHandler = new Handler(Looper.getMainLooper());
+    private final MutableLiveData<List<Note>> notesLiveData = new MutableLiveData<>();
+    private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
+    private final Handler uiHandler = new Handler(Looper.getMainLooper());
 
     public NotesViewModel() {
         try {
@@ -35,7 +34,6 @@ public class NotesViewModel extends ViewModel {
 
 
     public LiveData<List<Note>> getNotes(String username) {
-        Log.e("GetNotes", "Enter getNotes"); // Log when entering the method
         // Offload Firestore query to the background thread
         networkExecutor.execute(() -> {
             firestore.collection("notes")
@@ -47,8 +45,6 @@ public class NotesViewModel extends ViewModel {
                         for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
                             Note note = document.toObject(Note.class);
                             notes.add(note);
-
-                            Log.d("GetNotes", "Retrieved note: " + note.getTitle());
                         }
 
                         // Update the UI with the retrieved notes on the main (UI) thread
@@ -67,10 +63,8 @@ public class NotesViewModel extends ViewModel {
 
     public void addOrUpdateNote(String username, Note note, String docId) {
         if (docId == null || docId.isEmpty()) {
-            Log.e("Add note", "Adding note " );
             addNote(username, note);
         } else {
-            Log.e("Udpate note", "Updating note " );
             updateNote(username, docId, note);
         }
     }
@@ -78,7 +72,10 @@ public class NotesViewModel extends ViewModel {
         // Offload Firestore write operation to the background thread
         networkExecutor.execute(() -> {
             DocumentReference documentReference;
-            documentReference = FirebaseFirestore.getInstance().collection("notes").document(username).collection("my_notes").document();
+            documentReference = FirebaseFirestore.getInstance().collection("notes")
+                    .document(username)
+                    .collection("my_notes")
+                    .document();
             String newNoteId = documentReference.getId();
             note.setNoteId(newNoteId);
 
@@ -94,8 +91,6 @@ public class NotesViewModel extends ViewModel {
     private void updateNote(String username, String docId, Note note) {
         // Offload Firestore update operation to the background thread
         networkExecutor.execute(() -> {
-            DocumentReference documentReference;
-            documentReference = FirebaseFirestore.getInstance().collection("notes").document(username).collection("my_notes").document(docId);
             note.setNoteId(docId);
             firestore.collection("notes")
                     .document(username)
@@ -115,8 +110,6 @@ public class NotesViewModel extends ViewModel {
     public void updateNoteTitle(String username, String docId, String newTitle) {
         // Offload Firestore update operation to the background thread
         networkExecutor.execute(() -> {
-            DocumentReference documentReference;
-            documentReference = FirebaseFirestore.getInstance().collection("notes").document(username).collection("my_notes").document(docId);
 
             firestore.collection("notes")
                     .document(username)
@@ -166,8 +159,7 @@ public class NotesViewModel extends ViewModel {
 
 
     public void clearNotes() {
-        // Clear the notes data. You can implement this based on how you store and manage notes in your ViewModel.
-        // For example, if you have a LiveData<List<Note>> to store notes, you can set it to an empty list.
+        // Clear the notes data stored in the View Model
         List<Note> emptyList = new ArrayList<>();
         notesLiveData.setValue(emptyList);
     }
