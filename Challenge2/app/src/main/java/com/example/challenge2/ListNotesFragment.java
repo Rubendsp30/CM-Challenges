@@ -15,16 +15,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import androidx.appcompat.widget.Toolbar;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
-
 public class ListNotesFragment extends Fragment {
 
+    private NotesViewModel notesViewModel;
     private RecyclerView notesListRecycler; // RecyclerView for displaying notes
     private User loggedInUser; // Currently logged-in user
     private NotesAdapter notesAdapter; // Adapter for managing notes data
@@ -34,27 +31,51 @@ public class ListNotesFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View v = inflater.inflate(R.layout.fragment_list_notes, container, false); // Inflate the fragment's layout
-
-        overlayView = v.findViewById(R.id.overlayView); // Initialize the overlay view
+        this.FragmentChangeListener = (MainActivity) inflater.getContext(); // Set the fragment change listener
 
         Toolbar fragmentToolbar = v.findViewById(R.id.toolbarList); // Initialize the toolbar
-        this.FragmentChangeListener = (MainActivity) inflater.getContext(); // Set the fragment change listener
+
         ((AppCompatActivity) requireActivity()).setSupportActionBar(fragmentToolbar); // Set the toolbar as the action bar for this fragment
         setHasOptionsMenu(true); // Enable menu for this fragment
+
+        try {
+            notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
+        } catch (Exception e) {
+            Log.e("ListNotesFragment", "Error creating NotesViewModel: " + e.getMessage());
+        }
+
+
         return v;
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        this.notesListRecycler = view.findViewById(R.id.notesListRecycler); // Initialize the RecyclerView
+
 
         Bundle args = getArguments();
         if (args != null) {
             loggedInUser = (User) args.getSerializable("loggedInUser"); // Retrieve the logged-in user from arguments
         }
 
-        setupRecyclerView(); // Initialize and set up the RecyclerView to display notes
+
+        notesAdapter = new NotesAdapter(FragmentChangeListener, loggedInUser, getChildFragmentManager(),notesViewModel.getNotes(loggedInUser.getUsername()),notesViewModel);
+
+        setupRecyclerView(view); // Initialize and set up the RecyclerView to display notes
+    }
+
+    public void setupRecyclerView(@NonNull View view){
+        // Recycler View Layout Manager
+        LinearLayoutManager notesLayoutManager = new LinearLayoutManager(getContext(),
+                LinearLayoutManager.VERTICAL,
+                false
+        );
+
+        this.notesListRecycler = view.findViewById(R.id.notesListRecycler); // Initialize the RecyclerView
+        this.notesListRecycler.setLayoutManager(notesLayoutManager);
+        this.overlayView = view.findViewById(R.id.overlayView); // Initialize the overlay view
+        this.notesListRecycler.setAdapter(notesAdapter);
+
     }
 
     @Override
@@ -76,6 +97,9 @@ public class ListNotesFragment extends Fragment {
                 Log.e("ListNotesFragment-New Note", "FragmentChangeListener is null. Unable to replace the fragment.");
             }
         } else if (item.getItemId() == R.id.action_log_out) {
+            if (notesViewModel != null) {
+                notesViewModel.clearNotes(); // Add this line to clear the notes
+            }
             if (FragmentChangeListener != null) {
                 FragmentChangeListener.replaceFragment(new LoginFragment()); // Replace the current fragment with the LoginFragment
             } else {
@@ -84,31 +108,6 @@ public class ListNotesFragment extends Fragment {
 
         }
         return true;
-    }
-
-    public void setupRecyclerView(){
-        Query query = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes");
-        FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>().setQuery(query, Note.class).build();
-        notesListRecycler.setLayoutManager(new LinearLayoutManager(getContext())); // Set the layout manager for the RecyclerView
-        notesAdapter = new NotesAdapter(options, getContext(), FragmentChangeListener, loggedInUser, getChildFragmentManager()); // Initialize the notes adapter
-        notesListRecycler.setAdapter(notesAdapter); // Set the adapter for the RecyclerView
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        // Start listening for Firestore updates
-        if (notesAdapter != null) {
-            notesAdapter.startListening(); // Start listening for changes in Firestore data
-        }
-    }
-
-    @Override
-    public void onStop() {
-        super.onStop();
-        if (notesAdapter != null) {
-            notesAdapter.stopListening(); // Stop listening for changes when the fragment is not visible
-        }
     }
 
     // Methods to show and hide overlay when pop up is active
@@ -120,8 +119,11 @@ public class ListNotesFragment extends Fragment {
         overlayView.setVisibility(View.GONE);
     }
 
-    // Getter method to retrieve the notes adapter
-    public FirestoreRecyclerAdapter<Note, NotesAdapter.NotesViewHolder> getNotesAdapter() {
-        return notesAdapter;
+    public RecyclerView getNotesRecyclerView() {
+        return notesListRecycler;
     }
+    // Getter method to retrieve the notes adapter
+    /*public FirestoreRecyclerAdapter<Note, NotesAdapter.NotesViewHolder> getNotesAdapter() {
+        return notesAdapter;
+    }*/
 }

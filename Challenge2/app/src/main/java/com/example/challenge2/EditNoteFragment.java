@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -32,6 +33,7 @@ public class EditNoteFragment extends Fragment {
     private String docId;
     private boolean isEditMode = false;
     @Nullable private FragmentChangeListener FragmentChangeListener;
+    private NotesViewModel notesViewModel;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -41,6 +43,8 @@ public class EditNoteFragment extends Fragment {
         this.FragmentChangeListener = (MainActivity) inflater.getContext();
         ((AppCompatActivity) requireActivity()).setSupportActionBar(fragmentToolbar);
         setHasOptionsMenu(true); // Enable menu for this fragment
+
+        notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
         return v;
     }
 
@@ -109,30 +113,9 @@ public class EditNoteFragment extends Fragment {
             return;
         }
         Note newNote = new Note(newNoteTitle, newNoteBody, loggedInUser.getUsername());
-        uploadNoteToFirebase(newNote);
+        notesViewModel.addOrUpdateNote(loggedInUser.getUsername(), newNote, docId);
+        goBackToListNotes();
     }
 
-    public void uploadNoteToFirebase(Note note) {
-        // Upload the note data to Firestore
-        DocumentReference documentReference;
-        if (isEditMode) {
-            documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
-        } else {
-            documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document();
-        }
 
-        documentReference.set(note).addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                Toast.makeText(getContext(), "Uploaded", Toast.LENGTH_SHORT).show();
-                goBackToListNotes();
-            } else {
-                Exception e = task.getException();
-                if (e != null) {
-                    Toast.makeText(getContext(), "Upload Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getContext(), "Upload Failed with no error message.", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
 }

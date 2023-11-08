@@ -26,6 +26,11 @@ public class PopUpFragment extends DialogFragment {
     private User loggedInUser;
     private String title;
     private String docId;
+    private NotesViewModel notesViewModel;
+
+    public PopUpFragment(NotesViewModel notesViewModel) {
+        this.notesViewModel = notesViewModel;
+    }
 
     // This method is called to create and configure the dialog when this fragment is displayed.
     @NonNull
@@ -94,30 +99,16 @@ public class PopUpFragment extends DialogFragment {
 
     // Method to delete a note.
     void eraseNote() {
-        DocumentReference documentReference;
-        documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
-
-        documentReference.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                if (task.isSuccessful()) {
-                    Toast.makeText(getContext(), "Note deleted successfully", Toast.LENGTH_SHORT).show();
-                    refreshAdapter(); // Refresh the adapter after deleting a note.
-                    dismiss(); // Dismiss the dialog.
-                } else {
-                    Toast.makeText(getContext(), "Failed while deleting note", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    // Method to refresh the FirestoreRecyclerAdapter after deleting a note.
-    void refreshAdapter() {
-        FirestoreRecyclerAdapter<Note, NotesAdapter.NotesViewHolder> adapter = ((ListNotesFragment) getParentFragment()).getNotesAdapter();
-        if (adapter != null) {
-            adapter.notifyDataSetChanged();
+        // Check if docId is not empty
+        if (docId != null && !docId.isEmpty()) {
+            notesViewModel.deleteNote(loggedInUser.getUsername(), docId);
+            Toast.makeText(getContext(), "Note deleted successfully", Toast.LENGTH_SHORT).show();
+            dismiss(); // Dismiss the dialog.
+        } else {
+            Toast.makeText(getContext(), "Invalid note ID", Toast.LENGTH_SHORT).show();
         }
     }
+
 
     public void saveNewTitle() {
         String newNoteTitle = editTitlePopUp.getText().toString();
@@ -126,8 +117,11 @@ public class PopUpFragment extends DialogFragment {
             return;
         }
 
+        notesViewModel.updateNoteTitle(loggedInUser.getUsername(), docId,newNoteTitle);
+        dismiss();
+
         // Upload the note data to Firestore
-        DocumentReference documentReference;
+        /*DocumentReference documentReference;
         documentReference = FirebaseFirestore.getInstance().collection("notes").document(loggedInUser.getUsername()).collection("my_notes").document(docId);
 
         documentReference.update("title", newNoteTitle).addOnCompleteListener(task -> {
@@ -142,6 +136,6 @@ public class PopUpFragment extends DialogFragment {
                     Toast.makeText(getContext(), "Upload Failed with no error message.", Toast.LENGTH_SHORT).show();
                 }
             }
-        });
+        });*/
     }
 }

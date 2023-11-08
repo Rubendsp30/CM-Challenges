@@ -5,15 +5,21 @@ import com.google.firebase.firestore.PropertyName;
 public class Note {
 
     private String title;
-
     private String body;
-
     private String owner;
+    private String noteID;
 
     public Note(String title, String body, String owner) {
         this.title = title;
         this.body = body;
         this.owner = owner;
+    }
+
+    public Note(String title, String body, String owner, String noteID) {
+        this.title = title;
+        this.body = body;
+        this.owner = owner;
+        this.noteID = noteID;
     }
 
     public Note() {
@@ -44,5 +50,13 @@ public class Note {
 
     public void setBody(String body) {
         this.body = body;
+    }
+
+    public String getNoteId() {
+        return noteID;
+    }
+
+    public void setNoteId(String noteID) {
+        this.noteID = noteID;
     }
 }

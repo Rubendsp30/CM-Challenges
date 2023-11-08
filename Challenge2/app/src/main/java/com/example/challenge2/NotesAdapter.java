@@ -10,80 +10,109 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
+import java.util.List;
+
 // This class represents an adapter for a RecyclerView that displays a list of notes.
-public class NotesAdapter extends FirestoreRecyclerAdapter<Note,NotesAdapter.NotesViewHolder> {
-    Context context;
+public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
+    //Context context;
 
     // FragmentChangeListener and FragmentManager are used for handling fragment changes and pop-ups.
     @Nullable private final FragmentChangeListener FragmentChangeListener;
     @Nullable private final FragmentManager fragmentManager;
+    private final NotesViewModel viewModel;
 
-    // The logged-in user for whom the notes are being displayed.
-    private final User loggedInUser;
+    private final User loggedInUser;// The logged-in user for whom the notes are being displayed.
+    private LiveData<List<Note>> notesLiveData ;
 
     // Constructor for the NotesAdapter class.
-    public NotesAdapter(@NonNull FirestoreRecyclerOptions<Note> options, Context context, @Nullable FragmentChangeListener FragmentChangeListener, User loggedInUser, @Nullable FragmentManager fragmentManager) {
-        super(options);
-        this.context = context;
+    public NotesAdapter(@Nullable FragmentChangeListener FragmentChangeListener, User loggedInUser, @Nullable FragmentManager fragmentManager,  LiveData<List<Note>> notesLiveData, NotesViewModel viewModel) {
+        this.notesLiveData = notesLiveData;
         this.FragmentChangeListener = FragmentChangeListener;
         this.loggedInUser = loggedInUser;
         this.fragmentManager = fragmentManager;
+        this.viewModel = viewModel;
+
+        // Add an Observer to the LiveData to listen for dataset changes.
+        notesLiveData.observeForever(new Observer<List<Note>>() {
+            @Override
+            public void onChanged(List<Note> notes) {
+                notifyDataSetChanged(); // Notify the adapter that the dataset has changed.
+            }
+        });
     }
 
     // Called when binding data to a ViewHolder in the RecyclerView.
+
+
     @Override
-    protected void onBindViewHolder(@NonNull NotesViewHolder holder, int position, @NonNull Note note) {
-        // Set the note title and body in the ViewHolder.
-        holder.noteTitleCard.setText(note.getTitle());
-        holder.noteBodyCard.setText(note.getBody());
+    public void onBindViewHolder(@NonNull NotesAdapter.NotesViewHolder holder, int position) {
 
-        // Define click behavior for the RecyclerView items.
-        holder.itemView.setOnClickListener((v) -> {
-            // Create a bundle to pass data to a fragment.
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("loggedInUser", loggedInUser);
-            bundle.putSerializable("title", note.getTitle());
-            bundle.putSerializable("body", note.getBody());
-            String docId = this.getSnapshots().getSnapshot(position).getId();
-            bundle.putSerializable("docId", docId);
-            EditNoteFragment fragment = new EditNoteFragment();
-            fragment.setArguments(bundle);
+        // Get the note at the specified position from the notesLiveData list
+        List<Note> notesList = notesLiveData.getValue();
 
-            // Replace the current fragment with the EditNoteFragment.
-            if (FragmentChangeListener != null) {
-                FragmentChangeListener.replaceFragment(fragment);
-            }
-        });
+        if (notesList != null && position >= 0 && position < notesList.size()) {
+            Note itemNote = notesList.get(position);
 
-        // Define long click behavior for the RecyclerView items.
-        holder.itemView.setOnLongClickListener((v) -> {
-            // Create a bundle to pass data to a pop-up fragment.
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("loggedInUser", loggedInUser);
-            bundle.putSerializable("title", note.getTitle());
-            String docId = this.getSnapshots().getSnapshot(position).getId();
-            bundle.putSerializable("docId", docId);
-            PopUpFragment fragment = new PopUpFragment();
-            fragment.setArguments(bundle);
+            // Now you can use the itemNote to populate your ViewHolder views.
+            // For example, if you want to set the text of a TextView in your ViewHolder:
+            holder.noteTitleCard.setText(itemNote.getTitle());
+            holder.noteBodyCard.setText(itemNote.getBody());
 
-            // Show the pop-up fragment using the FragmentManager.
-            if (fragmentManager != null) {
-                fragment.show(fragmentManager, "PopUpFragment");
-            }
+            holder.itemView.setOnClickListener((v) -> {
+                // Create a bundle to pass data to a fragment.
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("loggedInUser", loggedInUser);
+                bundle.putSerializable("title", itemNote.getTitle());
+                bundle.putSerializable("body", itemNote.getBody());
+                bundle.putSerializable("docId", itemNote.getNoteId());
+                EditNoteFragment fragment = new EditNoteFragment();
+                fragment.setArguments(bundle);
 
-            return true;
-        });
+                // Replace the current fragment with the EditNoteFragment.
+                if (FragmentChangeListener != null) {
+                    FragmentChangeListener.replaceFragment(fragment);
+                }
+            });
+
+            holder.itemView.setOnLongClickListener((v) -> {
+                // Create a bundle to pass data to a pop-up fragment.
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("loggedInUser", loggedInUser);
+                bundle.putSerializable("title", itemNote.getTitle());
+                bundle.putSerializable("docId", itemNote.getNoteId());
+                PopUpFragment fragment = new PopUpFragment(viewModel);
+                fragment.setArguments(bundle);
+
+                // Show the pop-up fragment using the FragmentManager.
+                if (fragmentManager != null) {
+                    fragment.show(fragmentManager, "PopUpFragment");
+                }
+
+                return true;
+            });
+        }
+
+    }
+
+    //Verificar isto
+    @Override
+    public int getItemCount() {
+        List<Note> notesList = notesLiveData.getValue();
+        return notesList != null ? notesList.size() : 0;
     }
 
     // Create a new ViewHolder for the RecyclerView items.
     @NonNull
     @Override
-    public NotesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public NotesAdapter.NotesViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // Inflate the layout for the note card.
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.note_card, parent, false);
         return new NotesViewHolder(view);
@@ -101,4 +130,5 @@ public class NotesAdapter extends FirestoreRecyclerAdapter<Note,NotesAdapter.Not
             this.noteBodyCard = noteView.findViewById(R.id.noteBodyCard);
         }
     }
+
 }
