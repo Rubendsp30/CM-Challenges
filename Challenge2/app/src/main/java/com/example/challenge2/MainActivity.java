@@ -1,6 +1,7 @@
 package com.example.challenge2;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import android.os.Bundle;
 
@@ -9,6 +10,7 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         setContentView(R.layout.activity_main);
 
         // Load the initial LoginFragment when the activity is created.

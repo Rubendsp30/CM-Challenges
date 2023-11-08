@@ -17,10 +17,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.Toast;
-
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class EditNoteFragment extends Fragment {
 
@@ -31,7 +27,6 @@ public class EditNoteFragment extends Fragment {
     private String title;
     private String body;
     private String docId;
-    private boolean isEditMode = false;
     @Nullable private FragmentChangeListener FragmentChangeListener;
     private NotesViewModel notesViewModel;
 
@@ -67,10 +62,6 @@ public class EditNoteFragment extends Fragment {
         noteTitleEdit.setText(title);
         noteBodyEdit.setText(body);
 
-        // Check if it's an edit mode
-        if (docId != null && !docId.isEmpty()) {
-            isEditMode = true;
-        }
     }
 
     @Override

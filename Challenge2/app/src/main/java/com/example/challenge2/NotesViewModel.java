@@ -159,7 +159,7 @@ public class NotesViewModel extends ViewModel {
 
 
     public void clearNotes() {
-        // Clear the notes data stored in the View Model
+        // Clear the notes data stored in the View Model when doing LogOut
         List<Note> emptyList = new ArrayList<>();
         notesLiveData.setValue(emptyList);
     }

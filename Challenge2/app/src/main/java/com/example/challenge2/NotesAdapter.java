@@ -22,7 +22,6 @@ import java.util.List;
 
 // This class represents an adapter for a RecyclerView that displays a list of notes.
 public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
-    //Context context;
 
     // FragmentChangeListener and FragmentManager are used for handling fragment changes and pop-ups.
     @Nullable private final FragmentChangeListener FragmentChangeListener;
@@ -50,8 +49,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     }
 
     // Called when binding data to a ViewHolder in the RecyclerView.
-
-
     @Override
     public void onBindViewHolder(@NonNull NotesAdapter.NotesViewHolder holder, int position) {
 
@@ -61,8 +58,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         if (notesList != null && position >= 0 && position < notesList.size()) {
             Note itemNote = notesList.get(position);
 
-            // Now you can use the itemNote to populate your ViewHolder views.
-            // For example, if you want to set the text of a TextView in your ViewHolder:
+            // Use the itemNote to populate the ViewHolder views.
             holder.noteTitleCard.setText(itemNote.getTitle());
             holder.noteBodyCard.setText(itemNote.getBody());
 

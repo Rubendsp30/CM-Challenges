@@ -87,6 +87,7 @@ public class ListNotesFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == R.id.action_new_note) {
+            //Create new Note
             if (FragmentChangeListener != null) {
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("loggedInUser", loggedInUser);
@@ -96,9 +97,11 @@ public class ListNotesFragment extends Fragment {
             } else {
                 Log.e("ListNotesFragment-New Note", "FragmentChangeListener is null. Unable to replace the fragment.");
             }
+
         } else if (item.getItemId() == R.id.action_log_out) {
+            //Log Out
             if (notesViewModel != null) {
-                notesViewModel.clearNotes(); // Add this line to clear the notes
+                notesViewModel.clearNotes(); //clear the notes
             }
             if (FragmentChangeListener != null) {
                 FragmentChangeListener.replaceFragment(new LoginFragment()); // Replace the current fragment with the LoginFragment
@@ -122,8 +125,5 @@ public class ListNotesFragment extends Fragment {
     public RecyclerView getNotesRecyclerView() {
         return notesListRecycler;
     }
-    // Getter method to retrieve the notes adapter
-    /*public FirestoreRecyclerAdapter<Note, NotesAdapter.NotesViewHolder> getNotesAdapter() {
-        return notesAdapter;
-    }*/
+
 }
