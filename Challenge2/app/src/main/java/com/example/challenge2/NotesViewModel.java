@@ -27,6 +27,8 @@ public class NotesViewModel extends ViewModel {
     private final MutableLiveData<List<Note>> notesLiveData = new MutableLiveData<>();
     private final ExecutorService networkExecutor = Executors.newSingleThreadExecutor();
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private static final String NOTES_COLLECTION = "notes";
+    private static final String MY_NOTES_COLLECTION = "my_notes";
 
     public NotesViewModel() {
         try {
@@ -45,9 +47,9 @@ public class NotesViewModel extends ViewModel {
     public LiveData<List<Note>> getNotes(String username) {
         // Offload Firestore query to the background thread
         networkExecutor.execute(() -> {
-            firestore.collection("notes")
+            firestore.collection(NOTES_COLLECTION)
                     .document(username)
-                    .collection("my_notes")
+                    .collection(MY_NOTES_COLLECTION)
                     .get()
                     .addOnSuccessListener(queryDocumentSnapshots -> {
                         List<Note> notes = new ArrayList<>();
@@ -58,7 +60,7 @@ public class NotesViewModel extends ViewModel {
 
                         // Update the UI with the retrieved notes on the main (UI) thread
                         uiHandler.post(() -> {
-                            notesLiveData.setValue(notes);
+                                notesLiveData.setValue(notes);
                         });
                     })
                     .addOnFailureListener(e -> {
@@ -74,9 +76,9 @@ public class NotesViewModel extends ViewModel {
         // Offload Firestore write operation to the background thread
         networkExecutor.execute(() -> {
             DocumentReference documentReference;
-            documentReference = FirebaseFirestore.getInstance().collection("notes")
+            documentReference = firestore.collection(NOTES_COLLECTION)
                     .document(username)
-                    .collection("my_notes")
+                    .collection(MY_NOTES_COLLECTION)
                     .document();
             String newNoteId = documentReference.getId();
             note.setNoteId(newNoteId);
@@ -85,7 +87,7 @@ public class NotesViewModel extends ViewModel {
                        // Handle success, e.g., log the reference or show a success message
                    })
                    .addOnFailureListener(e -> {
-                       // Handle failure, e.g., log the error or show an error message
+                       Log.e("AddNote", "Failed to add note: " + e.getMessage());
                    });
         });
     }
@@ -93,9 +95,9 @@ public class NotesViewModel extends ViewModel {
     public void updateNote(String username, String docId, String newTitle, String newBody) {
         // Offload Firestore update operation to the background thread
         networkExecutor.execute(() -> {
-            DocumentReference noteRef = firestore.collection("notes")
+            DocumentReference noteRef = firestore.collection(NOTES_COLLECTION)
                     .document(username)
-                    .collection("my_notes")
+                    .collection(MY_NOTES_COLLECTION)
                     .document(docId);
 
             Map<String, Object> updates = new HashMap<>();
@@ -109,20 +111,20 @@ public class NotesViewModel extends ViewModel {
                     .addOnSuccessListener(aVoid -> {
                         // Temporary Fix
                         getNotes(username);
-                        // Handle success, e.g., log the reference or show a success message
                     })
                     .addOnFailureListener(e -> {
-                        // Handle failure, e.g., log the error or show an error message
+                        Log.e("UpdateNote", "Failed to update note: " + e.getMessage());
                     });
         });
     }
 
+
     public void deleteNote(String username, String docId) {
         // Offload Firestore delete operation to the background thread
         networkExecutor.execute(() -> {
-            firestore.collection("notes")
+            firestore.collection(NOTES_COLLECTION)
                     .document(username)
-                    .collection("my_notes")
+                    .collection(MY_NOTES_COLLECTION)
                     .document(docId)
                     .delete()
                     .addOnSuccessListener(aVoid -> {
@@ -138,11 +140,14 @@ public class NotesViewModel extends ViewModel {
                                 }
                             }
                             // Update the LiveData with the modified list
-                            notesLiveData.postValue(currentNotes);
+                            uiHandler.post(() -> {
+                                notesLiveData.postValue(currentNotes);
+                            });
+
                         }
                     })
                     .addOnFailureListener(e -> {
-                        // Handle failure, e.g., log the error or show an error message
+                        Log.e("DeleteNote", "Failed to delete note: " + e.getMessage());
                     });
         });
     }
