@@ -29,6 +29,7 @@ public class NotesViewModel extends ViewModel {
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
     private static final String NOTES_COLLECTION = "notes";
     private static final String MY_NOTES_COLLECTION = "my_notes";
+    private boolean isNetworkAvailable;
 
     public NotesViewModel() {
         try {
@@ -43,32 +44,48 @@ public class NotesViewModel extends ViewModel {
         }
     }
 
+    public void setNetworkAvailable(boolean isNetworkAvailable) {
+        this.isNetworkAvailable = isNetworkAvailable;
+        if (isNetworkAvailable) {
+            Log.e("NotesViewModel", "Network is available");
+        } else {
+            Log.e("NotesViewModel", "Network is not available");
+        }
+    }
+
+
 
     public LiveData<List<Note>> getNotes(String username) {
-        // Offload Firestore query to the background thread
-        networkExecutor.execute(() -> {
-            firestore.collection(NOTES_COLLECTION)
-                    .document(username)
-                    .collection(MY_NOTES_COLLECTION)
-                    .get()
-                    .addOnSuccessListener(queryDocumentSnapshots -> {
-                        List<Note> notes = new ArrayList<>();
-                        for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                            Note note = document.toObject(Note.class);
-                            notes.add(note);
-                        }
+        if (isNetworkAvailable) {
+            // Offload Firestore query to the background thread
+            networkExecutor.execute(() -> {
+                firestore.collection(NOTES_COLLECTION)
+                        .document(username)
+                        .collection(MY_NOTES_COLLECTION)
+                        .get()
+                        .addOnSuccessListener(queryDocumentSnapshots -> {
+                            List<Note> notes = new ArrayList<>();
+                            for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
+                                Note note = document.toObject(Note.class);
+                                notes.add(note);
+                            }
 
-                        // Update the UI with the retrieved notes on the main (UI) thread
-                        uiHandler.post(() -> {
+                            // Update the UI with the retrieved notes on the main (UI) thread
+                            uiHandler.post(() -> {
                                 notesLiveData.setValue(notes);
+                            });
+                        })
+                        .addOnFailureListener(e -> {
+                            // Handle failure, e.g., log the error or show a message
+                            Log.e("GetNotes", "Failed to retrieve notes: " + e.getMessage());
                         });
-                    })
-                    .addOnFailureListener(e -> {
-                        // Handle failure, e.g., log the error or show a message
-                        Log.e("GetNotes", "Failed to retrieve notes: " + e.getMessage());
-                    });
-        });
-
+            });
+        }else {
+                // Handle the case when the network is not available
+                // You can set a default value for notesLiveData or handle it according to your use case
+                List<Note> emptyList = new ArrayList<>();
+                notesLiveData.setValue(emptyList);
+            }
         return notesLiveData;
     }
 

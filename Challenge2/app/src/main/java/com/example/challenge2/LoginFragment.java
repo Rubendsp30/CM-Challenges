@@ -1,6 +1,8 @@
 package com.example.challenge2;
 
 import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,12 +24,14 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import androidx.lifecycle.ViewModelProvider;
 
 public class LoginFragment extends Fragment {
 
     private EditText usernameLogin;
     private EditText passwordLogin;
     @Nullable private FragmentChangeListener FragmentChangeListener;
+    private NotesViewModel notesViewModel;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -139,6 +143,12 @@ public class LoginFragment extends Fragment {
 
     private void navigateToListNotesFragment(User loggedInUser) {
         if (FragmentChangeListener != null) {
+            try {
+                notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
+                notesViewModel.setNetworkAvailable(isNetworkAvailable());
+            } catch (Exception e) {
+                Log.e("LoginFragment", "Error creating NotesViewModel: " + e.getMessage());
+            }
             Bundle bundle = new Bundle();
             bundle.putSerializable("loggedInUser", loggedInUser);
             ListNotesFragment fragment = new ListNotesFragment();
@@ -147,5 +157,18 @@ public class LoginFragment extends Fragment {
         } else {
             Log.e("LoginFragment-login", "FragmentChangeListener is null. Unable to replace the fragment.");
         }
+    }
+
+    // Method to check if the network is available
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager = (ConnectivityManager) requireActivity()
+                .getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        if (connectivityManager != null) {
+            NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+        }
+
+        return false;
     }
 }
