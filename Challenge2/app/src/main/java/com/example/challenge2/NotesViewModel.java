@@ -10,6 +10,8 @@ import androidx.lifecycle.MutableLiveData;
 
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.MemoryCacheSettings;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
@@ -29,6 +31,11 @@ public class NotesViewModel extends ViewModel {
     public NotesViewModel() {
         try {
             firestore = FirebaseFirestore.getInstance();
+            // Disable Firestore cache
+            FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                    .setLocalCacheSettings(MemoryCacheSettings.newBuilder().build())
+                    .build();
+            firestore.setFirestoreSettings(settings);
         } catch (Exception e) {
             Log.e("NotesViewModel", "Error initializing NotesViewModel: " + e.getMessage());
         }
