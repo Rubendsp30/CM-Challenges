@@ -106,9 +106,9 @@ public class EditNoteFragment extends Fragment {
         Note newNote = new Note(newNoteTitle, newNoteBody, loggedInUser.getUsername());
 
         if (docId == null || docId.isEmpty()) {
-            notesViewModel.addNote(loggedInUser.getUsername(), newNote);
+            notesViewModel.addNote(loggedInUser.getUsername(), newNote, requireContext());
         } else {
-            notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, newNoteBody);
+            notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, newNoteBody,requireContext());
         }
         goBackToListNotes();
     }

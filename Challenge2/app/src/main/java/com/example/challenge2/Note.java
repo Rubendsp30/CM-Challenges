@@ -2,7 +2,9 @@ package com.example.challenge2;
 
 import com.google.firebase.firestore.PropertyName;
 
-public class Note {
+import java.io.Serializable;
+
+public class Note implements Serializable {
 
     private String title;
     private String body;

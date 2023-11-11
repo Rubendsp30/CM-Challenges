@@ -145,7 +145,7 @@ public class LoginFragment extends Fragment {
         if (FragmentChangeListener != null) {
             try {
                 notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
-                notesViewModel.setNetworkAvailable(isNetworkAvailable());
+                notesViewModel.setNetworkAvailable(isNetworkAvailable(),requireContext());
             } catch (Exception e) {
                 Log.e("LoginFragment", "Error creating NotesViewModel: " + e.getMessage());
             }

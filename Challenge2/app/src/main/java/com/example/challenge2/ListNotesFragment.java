@@ -59,7 +59,7 @@ public class ListNotesFragment extends Fragment {
         }
 
 
-        notesAdapter = new NotesAdapter(FragmentChangeListener, loggedInUser, getChildFragmentManager(),notesViewModel.getNotes(loggedInUser.getUsername()),notesViewModel);
+        notesAdapter = new NotesAdapter(FragmentChangeListener, loggedInUser, getChildFragmentManager(),notesViewModel.getNotes(loggedInUser.getUsername(),requireContext()),notesViewModel);
 
         setupRecyclerView(view); // Initialize and set up the RecyclerView to display notes
     }

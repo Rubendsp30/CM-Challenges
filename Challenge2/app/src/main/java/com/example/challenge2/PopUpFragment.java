@@ -101,7 +101,7 @@ public class PopUpFragment extends DialogFragment {
     void eraseNote() {
         // Check if docId is not empty
         if (docId != null && !docId.isEmpty()) {
-            notesViewModel.deleteNote(loggedInUser.getUsername(), docId);
+            notesViewModel.deleteNote(loggedInUser.getUsername(), docId, requireContext());
             Toast.makeText(getContext(), "Note deleted successfully", Toast.LENGTH_SHORT).show();
             dismiss(); // Dismiss the dialog.
         } else {
@@ -117,7 +117,7 @@ public class PopUpFragment extends DialogFragment {
             return;
         }
 
-        notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, null);
+        notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, null,requireContext());
         dismiss();
     }
 }
