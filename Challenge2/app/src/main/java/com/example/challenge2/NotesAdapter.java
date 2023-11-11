@@ -1,6 +1,5 @@
 package com.example.challenge2;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -13,12 +12,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +28,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     private final NotesViewModel viewModel;
 
     private final User loggedInUser;// The logged-in user for whom the notes are being displayed.
-    private LiveData<List<Note>> notesLiveData ;
+    private final LiveData<List<Note>> notesLiveData ;
     private List<Note> filteredNotesList;
 
     // Constructor for the NotesAdapter class.

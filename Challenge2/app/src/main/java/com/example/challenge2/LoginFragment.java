@@ -31,7 +31,6 @@ public class LoginFragment extends Fragment {
     private EditText usernameLogin;
     private EditText passwordLogin;
     @Nullable private FragmentChangeListener FragmentChangeListener;
-    private NotesViewModel notesViewModel;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -48,13 +47,11 @@ public class LoginFragment extends Fragment {
 
         // Initialize UI elements and set click listeners
         Button createAccountButton = view.findViewById(R.id.createAccountButton);
-        Button tempSeeUsers = view.findViewById(R.id.tempSeeUsers);
         Button loginButton = view.findViewById(R.id.loginButton);
         this.usernameLogin = view.findViewById(R.id.usernameLogin);
         this.passwordLogin = view.findViewById(R.id.passwordLogin);
 
         createAccountButton.setOnClickListener(v -> goToRegisterDisplay());
-        tempSeeUsers.setOnClickListener(v -> goToUsersDisplay());
         loginButton.setOnClickListener(v -> login());
     }
 
@@ -66,17 +63,6 @@ public class LoginFragment extends Fragment {
         } else {
             // Handle the case where FragmentChangeListener is null
             Log.e("LoginFragment-goToRegisterDisplay", "FragmentChangeListener is null. Unable to replace the fragment.");
-        }
-    }
-
-    private void goToUsersDisplay() {
-        // Navigate to the users fragment
-
-        if (FragmentChangeListener != null) {
-            FragmentChangeListener.replaceFragment(new UsersFragment());
-        } else {
-            // Handle the case where FragmentChangeListener is null
-            Log.e("LoginFragment-goToUsersDisplay", "FragmentChangeListener is null. Unable to replace the fragment.");
         }
     }
 
@@ -144,7 +130,7 @@ public class LoginFragment extends Fragment {
     private void navigateToListNotesFragment(User loggedInUser) {
         if (FragmentChangeListener != null) {
             try {
-                notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
+                NotesViewModel notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
                 notesViewModel.setNetworkAvailable(isNetworkAvailable(),requireContext());
             } catch (Exception e) {
                 Log.e("LoginFragment", "Error creating NotesViewModel: " + e.getMessage());
@@ -166,7 +152,7 @@ public class LoginFragment extends Fragment {
 
         if (connectivityManager != null) {
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
-            return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+            return activeNetworkInfo != null;
         }
 
         return false;

@@ -15,18 +15,12 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-
 public class PopUpFragment extends DialogFragment {
     private EditText editTitlePopUp;
     private User loggedInUser;
     private String title;
     private String docId;
-    private NotesViewModel notesViewModel;
+    private final NotesViewModel notesViewModel;
 
     public PopUpFragment(NotesViewModel notesViewModel) {
         this.notesViewModel = notesViewModel;

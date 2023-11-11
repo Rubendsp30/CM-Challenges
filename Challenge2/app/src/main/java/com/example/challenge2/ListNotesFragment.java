@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 public class ListNotesFragment extends Fragment {
 
     private NotesViewModel notesViewModel;
-    private RecyclerView notesListRecycler; // RecyclerView for displaying notes
     private User loggedInUser; // Currently logged-in user
     private NotesAdapter notesAdapter; // Adapter for managing notes data
     @Nullable private FragmentChangeListener FragmentChangeListener; // Listener for fragment changes
@@ -72,10 +71,11 @@ public class ListNotesFragment extends Fragment {
                 false
         );
 
-        this.notesListRecycler = view.findViewById(R.id.notesListRecycler); // Initialize the RecyclerView
-        this.notesListRecycler.setLayoutManager(notesLayoutManager);
+        // RecyclerView for displaying notes
+        RecyclerView notesListRecycler = view.findViewById(R.id.notesListRecycler); // Initialize the RecyclerView
+        notesListRecycler.setLayoutManager(notesLayoutManager);
         this.overlayView = view.findViewById(R.id.overlayView); // Initialize the overlay view
-        this.notesListRecycler.setAdapter(notesAdapter);
+        notesListRecycler.setAdapter(notesAdapter);
 
     }
 
@@ -142,8 +142,8 @@ public class ListNotesFragment extends Fragment {
         overlayView.setVisibility(View.GONE);
     }
 
-    public RecyclerView getNotesRecyclerView() {
+    /*public RecyclerView getNotesRecyclerView() {
         return notesListRecycler;
-    }
+    }*/
 
 }
