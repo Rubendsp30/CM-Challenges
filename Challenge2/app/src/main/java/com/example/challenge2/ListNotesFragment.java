@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 public class ListNotesFragment extends Fragment {
 
     private NotesViewModel notesViewModel;
-    private User loggedInUser; // Currently logged-in user
     private NotesAdapter notesAdapter; // Adapter for managing notes data
     @Nullable private FragmentChangeListener FragmentChangeListener; // Listener for fragment changes
     private View overlayView; // Overlay view for UI interaction
@@ -40,6 +39,7 @@ public class ListNotesFragment extends Fragment {
 
         try {
             notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
+            notesViewModel.setSelectedNote(new Note());
         } catch (Exception e) {
             Log.e("ListNotesFragment", "Error creating NotesViewModel: " + e.getMessage());
         }
@@ -53,13 +53,9 @@ public class ListNotesFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
 
-        Bundle args = getArguments();
-        if (args != null) {
-            loggedInUser = (User) args.getSerializable("loggedInUser"); // Retrieve the logged-in user from arguments
-        }
-
-
-        notesAdapter = new NotesAdapter(FragmentChangeListener, loggedInUser, getChildFragmentManager(),notesViewModel.getNotes(loggedInUser.getUsername(),requireContext()),notesViewModel);
+        // Currently logged-in user
+        String loggedInUser = notesViewModel.getLogedUser();
+        notesAdapter = new NotesAdapter(FragmentChangeListener, getChildFragmentManager(),notesViewModel.getNotes(loggedInUser,requireContext()),notesViewModel);
 
         setupRecyclerView(view); // Initialize and set up the RecyclerView to display notes
     }
@@ -109,10 +105,7 @@ public class ListNotesFragment extends Fragment {
         if (item.getItemId() == R.id.action_new_note) {
             //Create new Note
             if (FragmentChangeListener != null) {
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("loggedInUser", loggedInUser);
                 EditNoteFragment fragment = new EditNoteFragment();
-                fragment.setArguments(bundle);
                 FragmentChangeListener.replaceFragment(fragment); // Replace the current fragment with the EditNoteFragment
             } else {
                 Log.e("ListNotesFragment-New Note", "FragmentChangeListener is null. Unable to replace the fragment.");
@@ -141,9 +134,5 @@ public class ListNotesFragment extends Fragment {
     public void hideOverlay() {
         overlayView.setVisibility(View.GONE);
     }
-
-    /*public RecyclerView getNotesRecyclerView() {
-        return notesListRecycler;
-    }*/
 
 }

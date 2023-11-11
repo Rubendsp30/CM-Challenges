@@ -57,18 +57,15 @@ public class LoginFragment extends Fragment {
 
     private void goToRegisterDisplay() {
         // Navigate to the registration fragment
-
         if (FragmentChangeListener != null) {
             FragmentChangeListener.replaceFragment(new RegisterFragment());
         } else {
-            // Handle the case where FragmentChangeListener is null
             Log.e("LoginFragment-goToRegisterDisplay", "FragmentChangeListener is null. Unable to replace the fragment.");
         }
     }
 
     private void login() {
         // Handle the login process
-
         String username = usernameLogin.getText().toString();
         String password = passwordLogin.getText().toString();
 
@@ -87,7 +84,6 @@ public class LoginFragment extends Fragment {
 
     private List<User> readUsersFromFile() {
         // Read user data from a file and return a list of users
-
         List<User> users = new ArrayList<>();
 
         try {
@@ -132,13 +128,12 @@ public class LoginFragment extends Fragment {
             try {
                 NotesViewModel notesViewModel = new ViewModelProvider(requireActivity()).get(NotesViewModel.class);
                 notesViewModel.setNetworkAvailable(isNetworkAvailable(),requireContext());
+                notesViewModel.setLogedUser(loggedInUser.getUsername());
             } catch (Exception e) {
                 Log.e("LoginFragment", "Error creating NotesViewModel: " + e.getMessage());
             }
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("loggedInUser", loggedInUser);
+
             ListNotesFragment fragment = new ListNotesFragment();
-            fragment.setArguments(bundle);
             FragmentChangeListener.replaceFragment(fragment);
         } else {
             Log.e("LoginFragment-login", "FragmentChangeListener is null. Unable to replace the fragment.");

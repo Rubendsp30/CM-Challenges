@@ -17,8 +17,7 @@ import androidx.fragment.app.DialogFragment;
 
 public class PopUpFragment extends DialogFragment {
     private EditText editTitlePopUp;
-    private User loggedInUser;
-    private String title;
+    private String loggedInUser;
     private String docId;
     private final NotesViewModel notesViewModel;
 
@@ -41,18 +40,14 @@ public class PopUpFragment extends DialogFragment {
         Button savePopUpButton = dialogView.findViewById(R.id.savePopUpButton);
         savePopUpButton.setEnabled(false);
 
-        // Get arguments passed to this fragment.
-        Bundle args = getArguments();
-        if (args != null) {
-            loggedInUser = (User) args.getSerializable("loggedInUser");
-            title = args.getString("title");
-            docId = args.getString("docId");
-        }
+        loggedInUser = notesViewModel.getLogedUser();
+        Note selectedNote = notesViewModel.getSelectedNote();
+        docId = selectedNote.getNoteId();
 
         // Set the view for the AlertDialog.
         builder.setView(dialogView);
 
-        editTitlePopUp.setText(title);
+        editTitlePopUp.setText(selectedNote.getTitle());
 
         editTitlePopUp.addTextChangedListener(new TextWatcher() {
             @Override
@@ -86,7 +81,7 @@ public class PopUpFragment extends DialogFragment {
     @Override
     public void onDismiss(@NonNull DialogInterface dialog) {
         super.onDismiss(dialog);
-
+        notesViewModel.setSelectedNote(new Note());
         // Hide the overlay in the parent fragment when the dialog is dismissed.
         ((ListNotesFragment) getParentFragment()).hideOverlay();
     }
@@ -95,7 +90,7 @@ public class PopUpFragment extends DialogFragment {
     void eraseNote() {
         // Check if docId is not empty
         if (docId != null && !docId.isEmpty()) {
-            notesViewModel.deleteNote(loggedInUser.getUsername(), docId, requireContext());
+            notesViewModel.deleteNote(loggedInUser, docId, requireContext());
             Toast.makeText(getContext(), "Note deleted successfully", Toast.LENGTH_SHORT).show();
             dismiss(); // Dismiss the dialog.
         } else {
@@ -111,7 +106,7 @@ public class PopUpFragment extends DialogFragment {
             return;
         }
 
-        notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, null,requireContext());
+        notesViewModel.updateNote(loggedInUser, docId, newNoteTitle, null,requireContext());
         dismiss();
     }
 }

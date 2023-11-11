@@ -40,6 +40,9 @@ public class NotesViewModel extends ViewModel {
     private static final String MY_NOTES_COLLECTION = "my_notes";
     private boolean isNetworkAvailable;
 
+    private Note selectedNote;
+    private String loggedUser;
+
     public NotesViewModel() {
         try {
             firestore = FirebaseFirestore.getInstance();
@@ -63,6 +66,19 @@ public class NotesViewModel extends ViewModel {
         }
     }
 
+    public void setSelectedNote(Note note) {
+        this.selectedNote = note;
+    }
+    public Note getSelectedNote() {
+        return selectedNote;
+    }
+
+    public void setLogedUser(String username) {
+        this.loggedUser = username;
+    }
+    public String getLogedUser() {
+        return loggedUser;
+    }
     private void uploadFromFile( Context context) throws IOException, ClassNotFoundException {
 
         File file = new File(context.getFilesDir(), "notes.txt");
@@ -88,8 +104,6 @@ public class NotesViewModel extends ViewModel {
         }
     }
 
-
-
     public LiveData<List<Note>> getNotes(String username, Context context) {
         if (isNetworkAvailable) {
             // Offload Firestore query to the background thread
@@ -104,20 +118,17 @@ public class NotesViewModel extends ViewModel {
                                 Note note = document.toObject(Note.class);
                                 notes.add(note);
                             }
-
                             // Update the UI with the retrieved notes on the main (UI) thread
                             uiHandler.post(() -> {
                                 notesLiveData.setValue(notes);
                             });
                         })
                         .addOnFailureListener(e -> {
-                            // Handle failure, e.g., log the error or show a message
                             Log.e("GetNotes", "Failed to retrieve notes: " + e.getMessage());
                         });
             });
         }else {
                 // Handle the case when the network is not available
-                // You can set a default value for notesLiveData or handle it according to your use case
                 List<Note> emptyList = new ArrayList<>();
                 notesLiveData.setValue(emptyList);
             try {
@@ -139,7 +150,7 @@ public class NotesViewModel extends ViewModel {
                 while (true) {
                     try {
                         Note note = (Note) inputStream.readObject();
-                        //String note = "Title: "+note.getTitle()+"\nBody: "+note.getBody()+"\nOwner: "+note.getOwner()+"\nID: "+note.getNoteId()+"\n";
+
                         if(note.getOwner().equals(username)){
                             notes.add(note);
                         }
@@ -167,7 +178,7 @@ public class NotesViewModel extends ViewModel {
             note.setNoteId(newNoteId);
 
            documentReference.set(note).addOnSuccessListener(aVoid -> {
-                       // Handle success, e.g., log the reference or show a success message
+
                    })
                    .addOnFailureListener(e -> {
                        Log.e("AddNote", "Failed to add note: " + e.getMessage());
@@ -213,7 +224,6 @@ public class NotesViewModel extends ViewModel {
             e.printStackTrace();
         }
 
-        //Log.e("Note", "Title: "+newNote.getTitle()+"\nBody: "+newNote.getBody()+"\nOwner: "+newNote.getOwner()+"\nID: "+newNote.getNoteId());
         final int randomDocId = new Random().nextInt(99999999) + 999;
         newNote.setNoteId(Integer.toString(randomDocId));
         existingNotes.add(newNote);
@@ -246,8 +256,11 @@ public class NotesViewModel extends ViewModel {
 
             noteRef.update(updates)
                     .addOnSuccessListener(aVoid -> {
-                        // Temporary Fix
-                        getNotes(username,context);
+
+                        uiHandler.post(() -> {
+                            getNotes(username,context);
+                        });
+
                     })
                     .addOnFailureListener(e -> {
                         Log.e("UpdateNote", "Failed to update note: " + e.getMessage());
@@ -310,7 +323,6 @@ public class NotesViewModel extends ViewModel {
                     .document(docId)
                     .delete()
                     .addOnSuccessListener(aVoid -> {
-                        // Handle success, e.g., log the reference or show a success message
                         // Update notesLiveData after deleting the note
                         List<Note> currentNotes = notesLiveData.getValue();
                         if (currentNotes != null) {

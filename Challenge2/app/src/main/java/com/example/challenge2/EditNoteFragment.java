@@ -20,12 +20,9 @@ import android.widget.EditText;
 
 public class EditNoteFragment extends Fragment {
 
-    // Declare instance variables
     private EditText noteTitleEdit;
     private EditText noteBodyEdit;
-    private User loggedInUser;
-    private String title;
-    private String body;
+    private String loggedInUser;
     private String docId;
     @Nullable private FragmentChangeListener FragmentChangeListener;
     private NotesViewModel notesViewModel;
@@ -50,17 +47,16 @@ public class EditNoteFragment extends Fragment {
         this.noteBodyEdit = view.findViewById(R.id.noteBodyEdit);
 
         // Retrieve arguments passed to the fragment
-        Bundle args = getArguments();
-        if (args != null) {
-            loggedInUser = (User) args.getSerializable("loggedInUser");
-            title = args.getString("title");
-            body = args.getString("body");
-            docId = args.getString("docId");
-        }
+        Note selectedNote = notesViewModel.getSelectedNote();
+
+        loggedInUser = notesViewModel.getLogedUser();
+        docId = selectedNote.getNoteId();
 
         // Set the text fields with the retrieved data
-        noteTitleEdit.setText(title);
-        noteBodyEdit.setText(body);
+        if(docId != null){
+            noteTitleEdit.setText(selectedNote.getTitle());
+            noteBodyEdit.setText(selectedNote.getBody());
+        }
 
     }
 
@@ -85,10 +81,7 @@ public class EditNoteFragment extends Fragment {
     private void goBackToListNotes() {
         // Navigate back to the list of notes
         if (FragmentChangeListener != null) {
-            Bundle bundle = new Bundle();
-            bundle.putSerializable("loggedInUser", loggedInUser);
             ListNotesFragment fragment = new ListNotesFragment();
-            fragment.setArguments(bundle);
             FragmentChangeListener.replaceFragment(fragment);
         } else {
             Log.e("EditNotesFragment", "FragmentChangeListener is null. Unable to replace the fragment.");
@@ -103,15 +96,14 @@ public class EditNoteFragment extends Fragment {
             noteTitleEdit.setError("Title is required");
             return;
         }
-        Note newNote = new Note(newNoteTitle, newNoteBody, loggedInUser.getUsername());
+        Note newNote = new Note(newNoteTitle, newNoteBody, loggedInUser);
 
         if (docId == null || docId.isEmpty()) {
-            notesViewModel.addNote(loggedInUser.getUsername(), newNote, requireContext());
+            notesViewModel.addNote(loggedInUser, newNote, requireContext());
         } else {
-            notesViewModel.updateNote(loggedInUser.getUsername(), docId, newNoteTitle, newNoteBody,requireContext());
+            notesViewModel.updateNote(loggedInUser, docId, newNoteTitle, newNoteBody,requireContext());
         }
         goBackToListNotes();
     }
-
 
 }

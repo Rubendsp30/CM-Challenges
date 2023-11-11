@@ -1,6 +1,5 @@
 package com.example.challenge2;
 
-import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,15 +26,13 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     @Nullable private final FragmentManager fragmentManager;
     private final NotesViewModel viewModel;
 
-    private final User loggedInUser;// The logged-in user for whom the notes are being displayed.
     private final LiveData<List<Note>> notesLiveData ;
     private List<Note> filteredNotesList;
 
     // Constructor for the NotesAdapter class.
-    public NotesAdapter(@Nullable FragmentChangeListener FragmentChangeListener, User loggedInUser, @Nullable FragmentManager fragmentManager,  LiveData<List<Note>> notesLiveData, NotesViewModel viewModel) {
+    public NotesAdapter(@Nullable FragmentChangeListener FragmentChangeListener, @Nullable FragmentManager fragmentManager,  LiveData<List<Note>> notesLiveData, NotesViewModel viewModel) {
         this.notesLiveData = notesLiveData;
         this.FragmentChangeListener = FragmentChangeListener;
-        this.loggedInUser = loggedInUser;
         this.fragmentManager = fragmentManager;
         this.viewModel = viewModel;
 
@@ -95,30 +92,16 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
             holder.noteBodyCard.setText(itemNote.getBody());
 
             holder.itemView.setOnClickListener((v) -> {
-                // Create a bundle to pass data to a fragment.
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("loggedInUser", loggedInUser);
-                bundle.putSerializable("title", itemNote.getTitle());
-                bundle.putSerializable("body", itemNote.getBody());
-                bundle.putSerializable("docId", itemNote.getNoteId());
+                viewModel.setSelectedNote(itemNote);
                 EditNoteFragment fragment = new EditNoteFragment();
-                fragment.setArguments(bundle);
-
-                // Replace the current fragment with the EditNoteFragment.
                 if (FragmentChangeListener != null) {
                     FragmentChangeListener.replaceFragment(fragment);
                 }
             });
 
             holder.itemView.setOnLongClickListener((v) -> {
-                // Create a bundle to pass data to a pop-up fragment.
-                Bundle bundle = new Bundle();
-                bundle.putSerializable("loggedInUser", loggedInUser);
-                bundle.putSerializable("title", itemNote.getTitle());
-                bundle.putSerializable("docId", itemNote.getNoteId());
+                viewModel.setSelectedNote(itemNote);
                 PopUpFragment fragment = new PopUpFragment(viewModel);
-                fragment.setArguments(bundle);
-
                 // Show the pop-up fragment using the FragmentManager.
                 if (fragmentManager != null) {
                     fragment.show(fragmentManager, "PopUpFragment");
@@ -130,7 +113,6 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
 
     }
 
-    //Verificar isto
     @Override
     public int getItemCount() {
 

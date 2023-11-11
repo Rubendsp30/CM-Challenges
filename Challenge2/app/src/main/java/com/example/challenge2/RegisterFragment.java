@@ -153,9 +153,7 @@ public class RegisterFragment extends Fragment {
 
     private void goToLoginDisplay() {
         if (FragmentChangeListener != null) {
-            Bundle bundle = new Bundle();
             LoginFragment fragment = new LoginFragment();
-            fragment.setArguments(bundle);
             FragmentChangeListener.replaceFragment(fragment);
         } else {
             // Handle the case where FragmentChangeListener is null
