@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -18,10 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 // This class represents an adapter for a RecyclerView that displays a list of notes.
-public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> {
+public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHolder> implements Filterable {
 
     // FragmentChangeListener and FragmentManager are used for handling fragment changes and pop-ups.
     @Nullable private final FragmentChangeListener FragmentChangeListener;
@@ -30,6 +33,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
 
     private final User loggedInUser;// The logged-in user for whom the notes are being displayed.
     private LiveData<List<Note>> notesLiveData ;
+    private List<Note> filteredNotesList;
 
     // Constructor for the NotesAdapter class.
     public NotesAdapter(@Nullable FragmentChangeListener FragmentChangeListener, User loggedInUser, @Nullable FragmentManager fragmentManager,  LiveData<List<Note>> notesLiveData, NotesViewModel viewModel) {
@@ -43,9 +47,41 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         notesLiveData.observeForever(new Observer<List<Note>>() {
             @Override
             public void onChanged(List<Note> notes) {
+                filteredNotesList = notes;
                 notifyDataSetChanged(); // Notify the adapter that the dataset has changed.
             }
         });
+    }
+    @Override
+    public Filter getFilter() {
+        return new Filter() {
+            @Override
+            protected FilterResults performFiltering(CharSequence constraint) {
+                List<Note> filteredList = new ArrayList<>();
+
+                if (constraint == null || constraint.length() == 0) {
+                    filteredList.addAll(notesLiveData.getValue());
+                } else {
+                    String filterPattern = constraint.toString().toLowerCase().trim();
+
+                    for (Note note : notesLiveData.getValue()) {
+                        if (note.getTitle().toLowerCase().contains(filterPattern)) {
+                            filteredList.add(note);
+                        }
+                    }
+                }
+
+                FilterResults results = new FilterResults();
+                results.values = filteredList;
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence constraint, FilterResults results) {
+                filteredNotesList = (List<Note>) results.values;
+                notifyDataSetChanged();
+            }
+        };
     }
 
     // Called when binding data to a ViewHolder in the RecyclerView.
@@ -56,7 +92,7 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
         List<Note> notesList = notesLiveData.getValue();
 
         if (notesList != null && position >= 0 && position < notesList.size()) {
-            Note itemNote = notesList.get(position);
+            Note itemNote = filteredNotesList.get(position);
 
             // Use the itemNote to populate the ViewHolder views.
             holder.noteTitleCard.setText(itemNote.getTitle());
@@ -101,8 +137,12 @@ public class NotesAdapter extends RecyclerView.Adapter<NotesAdapter.NotesViewHol
     //Verificar isto
     @Override
     public int getItemCount() {
-        List<Note> notesList = notesLiveData.getValue();
-        return notesList != null ? notesList.size() : 0;
+
+        if (filteredNotesList != null) {
+            return filteredNotesList.size();
+        } else {
+            return 0;
+        }
     }
 
     // Create a new ViewHolder for the RecyclerView items.
