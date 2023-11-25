@@ -6,19 +6,12 @@
     android:layout_height="match_parent"
     android:background="#F8FCFC">
 
-    <androidx.constraintlayout.utils.widget.MockView
-        android:id="@+id/chart_container"
-        android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:layout_marginHorizontal="15dp"
-        android:background="#EF794C"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
+    <!-- O chart n aparece direito na preview do mockup ent adicionei um MockView
+    q simula o espaço onde fica o chart para que se possa trabalhar com o resto da UI
+
+    Para usar basta descomentar o MockView e comentar o AnyChartView-->
     <!--
-     <com.anychart.AnyChartView
+    <androidx.constraintlayout.utils.widget.MockView
         android:id="@+id/any_chart_view"
         android:layout_width="match_parent"
         android:layout_height="350dp"
@@ -30,24 +23,41 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
         -->
-    <Button
+
+    <com.anychart.AnyChartView
+        android:id="@+id/any_chart_view"
+        android:layout_width="match_parent"
+        android:layout_height="350dp"
+        android:layout_marginHorizontal="15dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.517"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageButton
         android:id="@+id/humidityButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginTop="10dp"
-        android:text="H"
-        app:layout_constraintTop_toBottomOf="@+id/chart_container"
-        app:layout_constraintStart_toStartOf="@+id/humiditySlider"
-     />
-    <Button
+        android:scaleType="fitXY"
+        android:src="@drawable/water_drop_on"
+        android:textAlignment="center"
+        android:background="@null"
+        app:layout_constraintTop_toBottomOf="@+id/any_chart_view"
+        app:layout_constraintStart_toStartOf="@+id/humiditySlider"/>
+
+    <ImageButton
         android:id="@+id/temperatureButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:text="T"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="10dp"
+        android:scaleType="fitXY"
+        android:src="@drawable/thermostat_on"
+        android:textAlignment="center"
+        android:background="@null"
         app:layout_constraintTop_toTopOf="@+id/humidityButton"
-        app:layout_constraintStart_toEndOf="@+id/humidityButton"
-        />
+        app:layout_constraintStart_toEndOf="@+id/humidityButton"/>
 
    <TextView
        android:id="@+id/humidityText"
@@ -66,7 +76,7 @@
         android:layout_marginTop="10dp"
         android:text="70%"
         android:textSize="19sp"
-        app:layout_constraintTop_toTopOf="@+id/humidityText"
+        app:layout_constraintBottom_toBottomOf="@id/humidityText"
         app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
         />
 
@@ -78,6 +88,7 @@
         android:layout_marginTop="10dp"
         android:max="100"
         android:min="0"
+        android:thumb="@drawable/seekbar_thumb"
         android:progress="70"
         android:progressDrawable="@drawable/seekbar_progress"
         android:splitTrack="false"
@@ -103,7 +114,7 @@
         android:layout_marginTop="10dp"
         android:text="40ºC"
         android:textSize="19sp"
-        app:layout_constraintTop_toBottomOf="@+id/humiditySlider"
+        app:layout_constraintBottom_toBottomOf="@+id/temperatureText"
         app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
         />
     <SeekBar
@@ -115,6 +126,7 @@
         android:max="80"
         android:min="-20"
         android:progress="40"
+        android:thumb="@drawable/seekbar_thumb"
         android:progressDrawable="@drawable/seekbar_progress"
         android:splitTrack="false"
         app:labelBehavior="gone"
@@ -126,7 +138,6 @@
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_marginBottom="5dp"
-        android:contentDescription="@string/app_name"
         android:scaleType="fitXY"
         android:src="@drawable/lightbulb_off"
         android:textAlignment="center"
