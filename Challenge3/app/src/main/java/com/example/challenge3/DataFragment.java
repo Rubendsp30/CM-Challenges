@@ -22,9 +22,11 @@ import com.anychart.scales.DateTime;
 
 import java.sql.Timestamp;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
 
 
@@ -36,6 +38,14 @@ public class DataFragment extends Fragment {
     private boolean lightState;
     private boolean humidityState;
     private boolean temperatureState;
+    private List<DataEntry> humidity_values;
+    private List<DataEntry> temperature_values;
+    private Line scatterHumidityLine;
+    private Line scatterTemperatureLine;
+    // TODO *********************************************Code only used for testing******************************************
+    private List<DataEntry> humidity_values_full = new ArrayList<>();
+    private List<DataEntry> temperature_values_full= new ArrayList<>();
+    // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -66,6 +76,9 @@ public class DataFragment extends Fragment {
         });
         this.lightbulbButton.setOnClickListener(v -> {
             updateLight();
+            // TODO *********************************************Code only used for testing******************************************
+            updateChart();
+            // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         });
     }
 
@@ -111,44 +124,8 @@ public class DataFragment extends Fragment {
         scatter.xScale(DateTime.instantiate());
         scatter.xAxis(0).labels().format("{%value}{dateTimeFormat:MMM d HH:mm:ss}");
 
-        // TODO *********************************************Code only used for testing******************************************
-        List<DataEntry> humidity_values = new ArrayList<>();
-        List<DataEntry> temperature_values = new ArrayList<>();
-
-        // TODO *Create Data*
-        Random random = new Random();
-        Instant baseTimestamp = Instant.parse("2023-01-01T00:00:00Z");
-        //scatter.xScale(DateTime.instantiate());
-        //scatter.xAxis(0).labels().format("{%value}{dateTimeFormat:MMM d HH:mm:ss}");
-
-        for (int i = 0; i < 10; i++) {
-            //Instant timestamp = baseTimestamp.plusSeconds(i * 600); // 600 seconds = 10 minutes
-            Instant timestamp = baseTimestamp.plusSeconds(i * 36000);
-
-
-            double yValue = random.nextDouble() * (80+20) -20; // Generate a random y value between -20 and 80
-            DecimalFormat decimalFormat = new DecimalFormat("#.##");
-            double formattedYValue = Double.parseDouble(decimalFormat.format(yValue));
-
-            humidity_values.add(new ValueDataEntry(String.valueOf(Timestamp.from(timestamp)), formattedYValue));
-        }
-
-        baseTimestamp = Instant.parse("2023-01-01T00:00:00Z");
-        for (int i = 0; i < 10; i++) {
-            //Instant timestamp = baseTimestamp.plusSeconds(i * 600); // 600 seconds = 10 minutes
-            Instant timestamp = baseTimestamp.plusSeconds(i * 36060);
-
-
-            double yValue = random.nextDouble() * 100; // Generate a random y value between 0 and 10
-            DecimalFormat decimalFormat = new DecimalFormat("#.##");
-            double formattedYValue = Double.parseDouble(decimalFormat.format(yValue));
-
-            temperature_values.add(new ValueDataEntry(String.valueOf(Timestamp.from(timestamp)), formattedYValue));
-        }
-        // TODO ^Create Data^
-
-        Line scatterHumidityLine = scatter.line(temperature_values);
-        Line scatterTemperatureLine = scatter.line(humidity_values);
+        scatterHumidityLine = scatter.line(humidity_values);
+        scatterTemperatureLine = scatter.line(temperature_values);
 
         scatterHumidityLine.stroke("Aqua", 3d, null, (String) null, (String) null);
         scatterTemperatureLine.stroke("DarkOrange", 3d, null, (String) null, (String) null);
@@ -165,10 +142,44 @@ public class DataFragment extends Fragment {
         scatterTemperatureLine.tooltip().titleFormat("{%x}{dateTimeFormat:MMM d HH:mm:ss}");
         scatterTemperatureLine.tooltip().format("{%value}ºC");
 
-        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
         anyChartView.setChart(scatter);
 
     }
 
+    private void updateChart() {
+        humidity_values = new ArrayList<>();
+        temperature_values = new ArrayList<>();
+
+        // TODO *********************************************Code only used for testing******************************************
+        addData();
+        for (DataEntry entry : humidity_values_full) {
+            humidity_values.add(entry);
+        }
+
+        for (DataEntry entry : temperature_values_full) {
+            temperature_values.add(entry);
+        }
+        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        scatterHumidityLine.data(humidity_values);
+        scatterTemperatureLine.data(temperature_values);
+
+    }
+
+    // TODO *********************************************Code only used for testing******************************************
+    private void addData() {
+        Random random = new Random();
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
+        DecimalFormat decimalFormat = new DecimalFormat("#.##", symbols);
+        //Humidity
+        double yValueH = random.nextDouble() * 100; // Generate a random y value between -20 and 80
+        double formattedYValueH = Double.parseDouble(decimalFormat.format(yValueH));
+        humidity_values_full.add(new ValueDataEntry(String.valueOf(Timestamp.from(Instant.now())), formattedYValueH));
+        //temperature
+        double yValueT = random.nextDouble() * (80 + 20) - 20; // Generate a random y value between -20 and 80
+        double formattedYValueT = Double.parseDouble(decimalFormat.format(yValueT));
+        temperature_values_full.add(new ValueDataEntry(String.valueOf(Timestamp.from(Instant.now())), formattedYValueT));
+    }
+    // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 }
