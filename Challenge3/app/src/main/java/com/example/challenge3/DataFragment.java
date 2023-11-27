@@ -9,6 +9,8 @@ import android.widget.ImageButton;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.anychart.AnyChart;
 import com.anychart.AnyChartView;
@@ -20,10 +22,8 @@ import com.anychart.enums.Anchor;
 import com.anychart.enums.MarkerType;
 import com.anychart.scales.DateTime;
 
-import java.sql.Timestamp;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -42,14 +42,16 @@ public class DataFragment extends Fragment {
     private List<DataEntry> temperature_values;
     private Line scatterHumidityLine;
     private Line scatterTemperatureLine;
-    // TODO *********************************************Code only used for testing******************************************
-    private List<DataEntry> humidity_values_full = new ArrayList<>();
-    private List<DataEntry> temperature_values_full= new ArrayList<>();
-    // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    private ReadingsViewModel readingsViewModel;
+    private LiveData<List<SensorReading>> temperatureLive;
+    private LiveData<List<SensorReading>> humidityLive;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.data_fragment, container, false);
+        this.readingsViewModel = new ViewModelProvider(requireActivity()).get(ReadingsViewModel.class);
+        this.humidityLive = readingsViewModel.getHumidityDataFirestore();
+        this.temperatureLive = readingsViewModel.getTemperatureDataFirestore();
 
         return view;
     }
@@ -67,6 +69,10 @@ public class DataFragment extends Fragment {
         this.lightbulbButton = view.findViewById(R.id.lightbulbButton);
         this.lightState = false;
 
+        /* TODO DESCOMENTAR APENAS APÓS DADOS SEREM OBTIDOS DE OUTRA FORMA SENÃO ENTRA EM LOOP INFINITO
+        humidityLive.observeForever(sensorReadings -> updateChart());
+        temperatureLive.observeForever(sensorReadings -> updateChart());
+        */
 
         this.humidityButton.setOnClickListener(v -> {
             updateHumidityState();
@@ -153,14 +159,14 @@ public class DataFragment extends Fragment {
 
         // TODO *********************************************Code only used for testing******************************************
         addData();
-        for (DataEntry entry : humidity_values_full) {
-            humidity_values.add(entry);
+        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        for (SensorReading reading : readingsViewModel.getHumidityData()) {
+            humidity_values.add(new ValueDataEntry(String.valueOf(reading.getTimestamp().getTime()), reading.getSensorReading().floatValue()));
+        }
+        for (SensorReading reading : readingsViewModel.getTemperatureData()) {
+            temperature_values.add(new ValueDataEntry(String.valueOf(reading.getTimestamp().getTime()), reading.getSensorReading().floatValue()));
         }
 
-        for (DataEntry entry : temperature_values_full) {
-            temperature_values.add(entry);
-        }
-        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         scatterHumidityLine.data(humidity_values);
         scatterTemperatureLine.data(temperature_values);
 
@@ -174,11 +180,13 @@ public class DataFragment extends Fragment {
         //Humidity
         double yValueH = random.nextDouble() * 100; // Generate a random y value between -20 and 80
         double formattedYValueH = Double.parseDouble(decimalFormat.format(yValueH));
-        humidity_values_full.add(new ValueDataEntry(String.valueOf(Timestamp.from(Instant.now())), formattedYValueH));
+        SensorReading sensorReadingH = new SensorReading(formattedYValueH);
+        readingsViewModel.addHumidityLiveData(sensorReadingH);
         //temperature
         double yValueT = random.nextDouble() * (80 + 20) - 20; // Generate a random y value between -20 and 80
         double formattedYValueT = Double.parseDouble(decimalFormat.format(yValueT));
-        temperature_values_full.add(new ValueDataEntry(String.valueOf(Timestamp.from(Instant.now())), formattedYValueT));
+        SensorReading sensorReadingT = new SensorReading(formattedYValueT);
+        readingsViewModel.addTemperatureLiveData(sensorReadingT);
     }
     // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
