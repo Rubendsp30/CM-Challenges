@@ -80,17 +80,18 @@
         app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
         />
 
-    <com.google.android.material.slider.Slider
+    <SeekBar
         android:id="@+id/humiditySlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
         android:layout_marginTop="10dp"
-        android:valueFrom="0.0"
-        android:valueTo="100.0"
-        android:stepSize="0.5"
-        android:value="70.0"
-        app:tickVisible="false"
+        android:max="200"
+        android:min="0"
+        android:thumb="@drawable/seekbar_thumb"
+        android:progress="140"
+        android:progressDrawable="@drawable/seekbar_progress"
+        android:splitTrack="false"
         app:labelBehavior="gone"
         app:layout_constraintTop_toBottomOf="@+id/humidityText"
         />
@@ -116,17 +117,18 @@
         app:layout_constraintBottom_toBottomOf="@+id/temperatureText"
         app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
         />
-    <com.google.android.material.slider.Slider
+    <SeekBar
         android:id="@+id/temperatureSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
         android:layout_marginTop="10dp"
-        android:valueFrom="-20.0"
-        android:valueTo="80.0"
-        android:stepSize="0.5"
-        android:value="40.0"
-        app:tickVisible="false"
+        android:max="160"
+        android:min="-40"
+        android:progress="80"
+        android:thumb="@drawable/seekbar_thumb"
+        android:progressDrawable="@drawable/seekbar_progress"
+        android:splitTrack="false"
         app:labelBehavior="gone"
         app:layout_constraintTop_toBottomOf="@+id/temperatureText"
         />

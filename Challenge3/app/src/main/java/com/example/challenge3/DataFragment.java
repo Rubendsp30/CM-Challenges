@@ -3,7 +3,6 @@ package com.example.challenge3;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,12 +27,10 @@ import com.anychart.core.scatter.series.Line;
 import com.anychart.enums.Anchor;
 import com.anychart.enums.MarkerType;
 import com.anychart.scales.DateTime;
-import com.google.android.material.slider.Slider;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -49,8 +46,6 @@ public class DataFragment extends Fragment {
     private ImageButton temperatureButton;
     private TextView humidityValue;
     private TextView temperatureValue;
-    private Slider humiditySlider;
-    private Slider temperatureSlider;
     private boolean lightState;
     private boolean humidityState;
     private boolean temperatureState;
@@ -90,8 +85,8 @@ public class DataFragment extends Fragment {
 
         this.humidityValue = view.findViewById(R.id.humidityValue);
         this.temperatureValue = view.findViewById(R.id.temperatureValue);
-        this.humiditySlider = view.findViewById(R.id.humiditySlider);
-        this.temperatureSlider = view.findViewById(R.id.temperatureSlider);
+        SeekBar humiditySlider = view.findViewById(R.id.humiditySlider);
+        SeekBar temperatureSlider = view.findViewById(R.id.temperatureSlider);
 
         this.readingsViewModel.setMaxHumidity(70.0);
         this.readingsViewModel.setMaxTemperature(40.0);
@@ -101,53 +96,59 @@ public class DataFragment extends Fragment {
         temperatureLive.observeForever(sensorReadings -> updateChart());
         */
 
-        humiditySlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+        humiditySlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
-            public void onStartTrackingTouch(@NonNull Slider slider) {
-
-            }
-
-            @Override
-            public void onStopTrackingTouch(@NonNull Slider slider) {
-                readingsViewModel.setMaxHumidity(slider.getValue());
-
-            }
-        });
-
-        humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
-            if (value == (int) value) {
-                humidityValue.setText(String.valueOf((int) value) + "%");
-            } else {
-                humidityValue.setText(String.valueOf(value) + "%");
-            }
-        });
-
-        temperatureSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
-            @Override
-            public void onStartTrackingTouch(@NonNull Slider slider) {
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Handle progress changes here with the step size applied
+                double value = progress * 0.5;
+                if (value == (int) value) {
+                    humidityValue.setText(String.valueOf((int) value) + "%");
+                } else {
+                    humidityValue.setText(String.valueOf(value) + "%");
+                }
+                // Update a TextView or perform any other actions with the value
             }
 
             @Override
-            public void onStopTrackingTouch(@NonNull Slider slider) {
-                readingsViewModel.setMaxTemperature(slider.getValue());
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Handle touch start
+            }
 
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                readingsViewModel.setMaxHumidity(seekBar.getProgress()*0.5);
+                // Handle touch end
             }
         });
 
-        temperatureSlider.addOnChangeListener((slider, value, fromUser) -> {
-            if (value == (int) value) {
-                temperatureValue.setText(String.valueOf((int) value) + "ºC");
-            } else {
-                temperatureValue.setText(String.valueOf(value) + "ºC");
+        temperatureSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                // Handle progress changes here with the step size applied
+                double value = progress * 0.5;
+                if (value == (int) value) {
+                    temperatureValue.setText(String.valueOf((int) value) + "ºC");
+                } else {
+                    temperatureValue.setText(String.valueOf(value) + "ºC");
+                }
+                // Update a TextView or perform any other actions with the value
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+                // Handle touch start
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+                readingsViewModel.setMaxTemperature(seekBar.getProgress()*0.5);
+                // Handle touch end
             }
         });
 
-        this.humidityButton.setOnClickListener(v -> {
-            updateHumidityState();
-        });
-        this.temperatureButton.setOnClickListener(v -> {
-            updateTemperatureState();
-        });
+
+        this.humidityButton.setOnClickListener(v -> updateHumidityState());
+        this.temperatureButton.setOnClickListener(v -> updateTemperatureState());
         this.lightbulbButton.setOnClickListener(v -> {
             updateLight();
             // TODO *********************************************Code only used for testing******************************************
