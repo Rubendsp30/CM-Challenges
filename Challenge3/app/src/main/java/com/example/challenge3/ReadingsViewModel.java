@@ -12,6 +12,9 @@ public class ReadingsViewModel extends ViewModel {
     private final MutableLiveData<List<SensorReading>> temperature_data = new MutableLiveData<>();
     private final MutableLiveData<List<SensorReading>> humidity_data = new MutableLiveData<>();
 
+    private double maxTemperature;
+    private double maxHumidity;
+
     public ReadingsViewModel() {
     }
 
@@ -75,6 +78,21 @@ public class ReadingsViewModel extends ViewModel {
             ArrayList<SensorReading> readingArr = new ArrayList<>();
         temperature_data.setValue(readingArr);
         return temperature_data;
+    }
+
+    public void setMaxHumidity(double maxHumidity) {
+        this.maxHumidity = maxHumidity;
+    }
+
+    public double getMaxHumidity() {
+        return maxHumidity;
+    }
+    public void setMaxTemperature(double maxTemperature) {
+        this.maxTemperature = maxTemperature;
+    }
+
+    public double getMaxTemperature() {
+        return maxTemperature;
     }
 
 }

@@ -1,13 +1,20 @@
 package com.example.challenge3;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
@@ -21,28 +28,39 @@ import com.anychart.core.scatter.series.Line;
 import com.anychart.enums.Anchor;
 import com.anychart.enums.MarkerType;
 import com.anychart.scales.DateTime;
+import com.google.android.material.slider.Slider;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 
 
 public class DataFragment extends Fragment {
-    private AnyChartView anyChartView;
+
+    private static final String CHANNEL_ID = "App_3";
+
+    private ReadingsViewModel readingsViewModel;
     private ImageButton lightbulbButton;
     private ImageButton humidityButton;
     private ImageButton temperatureButton;
+    private TextView humidityValue;
+    private TextView temperatureValue;
+    private Slider humiditySlider;
+    private Slider temperatureSlider;
     private boolean lightState;
     private boolean humidityState;
     private boolean temperatureState;
+
+    private AnyChartView anyChartView;
     private List<DataEntry> humidity_values;
     private List<DataEntry> temperature_values;
     private Line scatterHumidityLine;
     private Line scatterTemperatureLine;
-    private ReadingsViewModel readingsViewModel;
+
     private LiveData<List<SensorReading>> temperatureLive;
     private LiveData<List<SensorReading>> humidityLive;
 
@@ -50,6 +68,7 @@ public class DataFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.data_fragment, container, false);
         this.readingsViewModel = new ViewModelProvider(requireActivity()).get(ReadingsViewModel.class);
+        createNotificationsChannel();
         this.humidityLive = readingsViewModel.getHumidityDataFirestore();
         this.temperatureLive = readingsViewModel.getTemperatureDataFirestore();
 
@@ -69,10 +88,51 @@ public class DataFragment extends Fragment {
         this.lightbulbButton = view.findViewById(R.id.lightbulbButton);
         this.lightState = false;
 
+        this.humidityValue = view.findViewById(R.id.humidityValue);
+        this.temperatureValue = view.findViewById(R.id.temperatureValue);
+        this.humiditySlider = view.findViewById(R.id.humiditySlider);
+        this.temperatureSlider = view.findViewById(R.id.temperatureSlider);
+
+        this.readingsViewModel.setMaxHumidity(70.0);
+        this.readingsViewModel.setMaxTemperature(40.0);
+
         /* TODO DESCOMENTAR APENAS APÓS DADOS SEREM OBTIDOS DE OUTRA FORMA SENÃO ENTRA EM LOOP INFINITO
         humidityLive.observeForever(sensorReadings -> updateChart());
         temperatureLive.observeForever(sensorReadings -> updateChart());
         */
+
+        humiditySlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                readingsViewModel.setMaxHumidity(slider.getValue());
+
+            }
+        });
+
+        humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
+            humidityValue.setText(String.valueOf(value) + "%");
+        });
+
+        temperatureSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
+            @Override
+            public void onStartTrackingTouch(@NonNull Slider slider) {
+            }
+
+            @Override
+            public void onStopTrackingTouch(@NonNull Slider slider) {
+                readingsViewModel.setMaxTemperature(slider.getValue());
+
+            }
+        });
+
+        temperatureSlider.addOnChangeListener((slider, value, fromUser) -> {
+            temperatureValue.setText(String.valueOf(value) + "ºC");
+        });
 
         this.humidityButton.setOnClickListener(v -> {
             updateHumidityState();
@@ -182,12 +242,42 @@ public class DataFragment extends Fragment {
         double formattedYValueH = Double.parseDouble(decimalFormat.format(yValueH));
         SensorReading sensorReadingH = new SensorReading(formattedYValueH);
         readingsViewModel.addHumidityLiveData(sensorReadingH);
+
+        //Todo move this if condition to when receive the value from mqtt
+        if (yValueH > readingsViewModel.getMaxHumidity()) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+                    .setSmallIcon(R.drawable.water_drop_on)
+                    .setContentTitle("Humidity Warning!")
+                    .setContentText("Humidity too high!")
+                    .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
+            notificationManager.notify(1, builder.build());
+        }
+
         //temperature
         double yValueT = random.nextDouble() * (80 + 20) - 20; // Generate a random y value between -20 and 80
         double formattedYValueT = Double.parseDouble(decimalFormat.format(yValueT));
         SensorReading sensorReadingT = new SensorReading(formattedYValueT);
         readingsViewModel.addTemperatureLiveData(sensorReadingT);
+
+        //Todo move this if condition to when receive the value from mqtt
+        if (yValueT > readingsViewModel.getMaxTemperature()) {
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+                    .setSmallIcon(R.drawable.thermostat_on)
+                    .setContentTitle("Temperature Warning!")
+                    .setContentText("Temperature too high!")
+                    .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
+            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
+            notificationManager.notify(2, builder.build());
+        }
     }
     // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+    private void createNotificationsChannel() {
+        int importance = NotificationManager.IMPORTANCE_DEFAULT;
+        NotificationChannel channel = new NotificationChannel(CHANNEL_ID, "Challenge3", importance);
+        channel.setDescription("Challenge Notifications");
+        NotificationManager notificationManager = requireActivity().getSystemService(NotificationManager.class);
+        notificationManager.createNotificationChannel(channel);
+    }
 }
