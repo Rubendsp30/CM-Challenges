@@ -115,7 +115,11 @@ public class DataFragment extends Fragment {
         });
 
         humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
-            humidityValue.setText(String.valueOf(value) + "%");
+            if (value == (int) value) {
+                humidityValue.setText(String.valueOf((int) value) + "%");
+            } else {
+                humidityValue.setText(String.valueOf(value) + "%");
+            }
         });
 
         temperatureSlider.addOnSliderTouchListener(new Slider.OnSliderTouchListener() {
@@ -131,7 +135,11 @@ public class DataFragment extends Fragment {
         });
 
         temperatureSlider.addOnChangeListener((slider, value, fromUser) -> {
-            temperatureValue.setText(String.valueOf(value) + "ºC");
+            if (value == (int) value) {
+                temperatureValue.setText(String.valueOf((int) value) + "ºC");
+            } else {
+                temperatureValue.setText(String.valueOf(value) + "ºC");
+            }
         });
 
         this.humidityButton.setOnClickListener(v -> {
