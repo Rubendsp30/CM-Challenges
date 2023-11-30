@@ -2,6 +2,8 @@ package com.example.challenge3;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,9 +11,14 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.fragment.app.Fragment;
@@ -59,6 +66,26 @@ public class DataFragment extends Fragment {
     private LiveData<List<SensorReading>> temperatureLive;
     private LiveData<List<SensorReading>> humidityLive;
 
+    private boolean notificationsEnabled;
+
+    private ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+            new ActivityResultContracts.RequestPermission(),
+            new ActivityResultCallback<Boolean>() {
+                @Override
+                public void onActivityResult(Boolean result) {
+                    if (result) {
+                        // PERMISSION GRANTED
+                        Toast.makeText(requireContext(), "Permission granted", Toast.LENGTH_SHORT).show();
+                        notificationsEnabled = true;
+                    } else {
+                        // PERMISSION NOT GRANTED
+                        Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show();
+                        notificationsEnabled = false;
+                    }
+                }
+            }
+    );
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.data_fragment, container, false);
@@ -70,8 +97,21 @@ public class DataFragment extends Fragment {
         return view;
     }
 
+
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        notificationsEnabled = true;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // Android 13 (API level 33) and above
+            if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                notificationsEnabled = false;
+                requestPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+
+            }
+        }
+
 
         anyChartView = view.findViewById(R.id.any_chart_view);
         setupChart();
@@ -116,7 +156,7 @@ public class DataFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                readingsViewModel.setMaxHumidity(seekBar.getProgress()*0.5);
+                readingsViewModel.setMaxHumidity(seekBar.getProgress() * 0.5);
                 // Handle touch end
             }
         });
@@ -141,7 +181,7 @@ public class DataFragment extends Fragment {
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                readingsViewModel.setMaxTemperature(seekBar.getProgress()*0.5);
+                readingsViewModel.setMaxTemperature(seekBar.getProgress() * 0.5);
                 // Handle touch end
             }
         });
@@ -206,13 +246,13 @@ public class DataFragment extends Fragment {
         scatterTemperatureLine.stroke("DarkOrange", 3d, null, (String) null, (String) null);
 
         scatterHumidityLine.name("Humidity");
-        scatterHumidityLine.markers().enabled(true).type(MarkerType.CIRCLE).size(3.5d);
+        scatterHumidityLine.markers().enabled(true).type(MarkerType.CIRCLE).size(5d);
         scatterHumidityLine.tooltip().position("right").anchor(Anchor.LEFT_CENTER).offsetX(5d).offsetY(5d);
         scatterHumidityLine.tooltip().titleFormat("{%x}{dateTimeFormat:MMM d HH:mm:ss}");
         scatterHumidityLine.tooltip().format("{%value}%");
 
         scatterTemperatureLine.name("Temperature");
-        scatterTemperatureLine.markers().enabled(true).type(MarkerType.CIRCLE).size(3.5d);
+        scatterTemperatureLine.markers().enabled(true).type(MarkerType.CIRCLE).size(5d);
         scatterTemperatureLine.tooltip().position("right").anchor(Anchor.LEFT_CENTER).offsetX(5d).offsetY(5d);
         scatterTemperatureLine.tooltip().titleFormat("{%x}{dateTimeFormat:MMM d HH:mm:ss}");
         scatterTemperatureLine.tooltip().format("{%value}ºC");
@@ -253,14 +293,18 @@ public class DataFragment extends Fragment {
         readingsViewModel.addHumidityLiveData(sensorReadingH);
 
         //Todo move this if condition to when receive the value from mqtt
-        if (yValueH > readingsViewModel.getMaxHumidity()) {
+        if (yValueH > readingsViewModel.getMaxHumidity() && notificationsEnabled) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                     .setSmallIcon(R.drawable.water_drop_on)
                     .setContentTitle("Humidity Warning!")
                     .setContentText("Humidity too high!")
                     .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
-            notificationManager.notify(1, builder.build());
+            if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                notificationManager.notify(1, builder.build());
+            }
+
+
         }
 
         //temperature
@@ -270,17 +314,21 @@ public class DataFragment extends Fragment {
         readingsViewModel.addTemperatureLiveData(sensorReadingT);
 
         //Todo move this if condition to when receive the value from mqtt
-        if (yValueT > readingsViewModel.getMaxTemperature()) {
+        if (yValueT > readingsViewModel.getMaxTemperature() && notificationsEnabled) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                     .setSmallIcon(R.drawable.thermostat_on)
                     .setContentTitle("Temperature Warning!")
                     .setContentText("Temperature too high!")
                     .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
-            notificationManager.notify(2, builder.build());
+            if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                notificationManager.notify(2, builder.build());
+            }
+
         }
     }
     // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 
     private void createNotificationsChannel() {
         int importance = NotificationManager.IMPORTANCE_DEFAULT;
