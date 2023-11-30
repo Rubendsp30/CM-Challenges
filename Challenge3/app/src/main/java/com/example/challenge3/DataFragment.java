@@ -9,9 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
-import android.widget.SeekBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -34,10 +32,12 @@ import com.anychart.core.scatter.series.Line;
 import com.anychart.enums.Anchor;
 import com.anychart.enums.MarkerType;
 import com.anychart.scales.DateTime;
+import com.google.android.material.slider.RangeSlider;
 
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -68,20 +68,12 @@ public class DataFragment extends Fragment {
 
     private boolean notificationsEnabled;
 
-    private ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
+    private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(),
             new ActivityResultCallback<Boolean>() {
                 @Override
                 public void onActivityResult(Boolean result) {
-                    if (result) {
-                        // PERMISSION GRANTED
-                        Toast.makeText(requireContext(), "Permission granted", Toast.LENGTH_SHORT).show();
-                        notificationsEnabled = true;
-                    } else {
-                        // PERMISSION NOT GRANTED
-                        Toast.makeText(requireContext(), "Permission denied", Toast.LENGTH_SHORT).show();
-                        notificationsEnabled = false;
-                    }
+                    notificationsEnabled = result;
                 }
             }
     );
@@ -125,64 +117,64 @@ public class DataFragment extends Fragment {
 
         this.humidityValue = view.findViewById(R.id.humidityValue);
         this.temperatureValue = view.findViewById(R.id.temperatureValue);
-        SeekBar humiditySlider = view.findViewById(R.id.humiditySlider);
-        SeekBar temperatureSlider = view.findViewById(R.id.temperatureSlider);
+        RangeSlider humiditySlider = view.findViewById(R.id.humiditySlider);
+        RangeSlider temperatureSlider = view.findViewById(R.id.temperatureSlider);
 
-        this.readingsViewModel.setMaxHumidity(70.0);
-        this.readingsViewModel.setMaxTemperature(40.0);
+        List<Float> hum = humiditySlider.getValues();
+        this.readingsViewModel.setMinHumidity(Collections.min(hum));
+        this.readingsViewModel.setMaxHumidity(Collections.max(hum));
+
+        List<Float> tem = temperatureSlider.getValues();
+        this.readingsViewModel.setMinTemperature(Collections.min(tem));
+        this.readingsViewModel.setMaxTemperature(Collections.max(tem));
+
 
         /* TODO DESCOMENTAR APENAS APÓS DADOS SEREM OBTIDOS DE OUTRA FORMA SENÃO ENTRA EM LOOP INFINITO
         humidityLive.observeForever(sensorReadings -> updateChart());
         temperatureLive.observeForever(sensorReadings -> updateChart());
         */
 
-        humiditySlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        // Update Humidity text on change
+        humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
+            List<Float> values = slider.getValues();
+
+            humidityValue.setText("Min: "+ String.valueOf(Collections.min(values)) + "%\nMax: "+ String.valueOf(Collections.max(values))+"%");
+        });
+
+        //Update the thershold values of humidity
+        humiditySlider.addOnSliderTouchListener(new RangeSlider.OnSliderTouchListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Handle progress changes here with the step size applied
-                double value = progress * 0.5;
-                if (value == (int) value) {
-                    humidityValue.setText(String.valueOf((int) value) + "%");
-                } else {
-                    humidityValue.setText(String.valueOf(value) + "%");
-                }
-                // Update a TextView or perform any other actions with the value
+            public void onStartTrackingTouch(@NonNull RangeSlider slider) {
+                // Responds to when slider's touch event is being started
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Handle touch start
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                readingsViewModel.setMaxHumidity(seekBar.getProgress() * 0.5);
-                // Handle touch end
+            public void onStopTrackingTouch(@NonNull RangeSlider slider) {
+                // Responds to when slider's touch event is being stopped
+                List<Float> values = slider.getValues();
+                readingsViewModel.setMaxHumidity(Collections.max(values));
+                readingsViewModel.setMinHumidity(Collections.min(values));
             }
         });
 
-        temperatureSlider.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+        temperatureSlider.addOnChangeListener((slider, value, fromUser) -> {
+            List<Float> values = slider.getValues();
+
+            temperatureValue.setText("Min: "+ String.valueOf(Collections.min(values)) + "ºC\nMax: "+ String.valueOf(Collections.max(values))+"ºC");
+        });
+
+        temperatureSlider.addOnSliderTouchListener(new RangeSlider.OnSliderTouchListener() {
             @Override
-            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                // Handle progress changes here with the step size applied
-                double value = progress * 0.5;
-                if (value == (int) value) {
-                    temperatureValue.setText(String.valueOf((int) value) + "ºC");
-                } else {
-                    temperatureValue.setText(String.valueOf(value) + "ºC");
-                }
-                // Update a TextView or perform any other actions with the value
+            public void onStartTrackingTouch(@NonNull RangeSlider slider) {
+                // Responds to when slider's touch event is being started
             }
 
             @Override
-            public void onStartTrackingTouch(SeekBar seekBar) {
-                // Handle touch start
-            }
-
-            @Override
-            public void onStopTrackingTouch(SeekBar seekBar) {
-                readingsViewModel.setMaxTemperature(seekBar.getProgress() * 0.5);
-                // Handle touch end
+            public void onStopTrackingTouch(@NonNull RangeSlider slider) {
+                // Responds to when slider's touch event is being stopped
+                List<Float> values = slider.getValues();
+                readingsViewModel.setMaxTemperature(Collections.max(values));
+                readingsViewModel.setMinTemperature(Collections.min(values));
             }
         });
 
@@ -293,11 +285,11 @@ public class DataFragment extends Fragment {
         readingsViewModel.addHumidityLiveData(sensorReadingH);
 
         //Todo move this if condition to when receive the value from mqtt
-        if (yValueH > readingsViewModel.getMaxHumidity() && notificationsEnabled) {
+        if ((yValueH > readingsViewModel.getMaxHumidity() || yValueH < readingsViewModel.getMinHumidity())&& notificationsEnabled) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                     .setSmallIcon(R.drawable.water_drop_on)
                     .setContentTitle("Humidity Warning!")
-                    .setContentText("Humidity too high!")
+                    .setContentText("Humidity out of allowed range.")
                     .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
             if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
@@ -314,11 +306,11 @@ public class DataFragment extends Fragment {
         readingsViewModel.addTemperatureLiveData(sensorReadingT);
 
         //Todo move this if condition to when receive the value from mqtt
-        if (yValueT > readingsViewModel.getMaxTemperature() && notificationsEnabled) {
+        if ((yValueT > readingsViewModel.getMaxTemperature() || yValueT < readingsViewModel.getMinTemperature()) && notificationsEnabled) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                     .setSmallIcon(R.drawable.thermostat_on)
                     .setContentTitle("Temperature Warning!")
-                    .setContentText("Temperature too high!")
+                    .setContentText("Temperature out of allowed range.")
                     .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
             if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {

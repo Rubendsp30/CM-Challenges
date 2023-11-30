@@ -12,6 +12,8 @@ public class ReadingsViewModel extends ViewModel {
     private final MutableLiveData<List<SensorReading>> temperature_data = new MutableLiveData<>();
     private final MutableLiveData<List<SensorReading>> humidity_data = new MutableLiveData<>();
 
+    private double minTemperature;
+    private double minHumidity;
     private double maxTemperature;
     private double maxHumidity;
 
@@ -75,7 +77,7 @@ public class ReadingsViewModel extends ViewModel {
 
     //N tem DB implementado mas será esta função usada
     public MutableLiveData<List<SensorReading>> getTemperatureDataFirestore() {
-            ArrayList<SensorReading> readingArr = new ArrayList<>();
+        ArrayList<SensorReading> readingArr = new ArrayList<>();
         temperature_data.setValue(readingArr);
         return temperature_data;
     }
@@ -87,12 +89,29 @@ public class ReadingsViewModel extends ViewModel {
     public double getMaxHumidity() {
         return maxHumidity;
     }
+
     public void setMaxTemperature(double maxTemperature) {
         this.maxTemperature = maxTemperature;
     }
 
     public double getMaxTemperature() {
         return maxTemperature;
+    }
+
+    public void setMinHumidity(double minHumidity) {
+        this.minHumidity = minHumidity;
+    }
+
+    public double getMinHumidity() {
+        return minHumidity;
+    }
+
+    public void setMinTemperature(double minTemperature) {
+        this.minTemperature = minTemperature;
+    }
+
+    public double getMinTemperature() {
+        return minTemperature;
     }
 
 }

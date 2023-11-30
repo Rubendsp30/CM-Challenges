@@ -74,78 +74,79 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:text="70%"
+        android:text="Min: 20.0%\nMax: 60.0%"
+        android:textAlignment="textEnd"
         android:textSize="19sp"
         app:layout_constraintBottom_toBottomOf="@id/humidityText"
         app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
         />
 
-    <SeekBar
+    <com.google.android.material.slider.RangeSlider
         android:id="@+id/humiditySlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
         android:layout_marginTop="10dp"
-        android:max="200"
-        android:min="0"
-        android:thumb="@drawable/seekbar_thumb"
-        android:progress="140"
-        android:progressDrawable="@drawable/seekbar_progress"
-        android:splitTrack="false"
+        android:stepSize="0.5"
+        android:valueFrom="0.0"
+        android:valueTo="100.0"
+        app:tickVisible = "false"
         app:labelBehavior="gone"
+        app:values="@array/initial_range_slider_humidity_values"
         app:layout_constraintTop_toBottomOf="@+id/humidityText"
         />
 
-    <TextView
-        android:id="@+id/temperatureText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Temperature Limit"
-        android:textSize="19sp"
-        app:layout_constraintTop_toBottomOf="@+id/humiditySlider"
-        app:layout_constraintStart_toStartOf="@+id/humiditySlider"
-        />
+       <TextView
+           android:id="@+id/temperatureText"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="20dp"
+           android:text="Temperature Limit"
+           android:textSize="19sp"
+           app:layout_constraintTop_toBottomOf="@+id/humiditySlider"
+           app:layout_constraintStart_toStartOf="@+id/humiditySlider"
+           />
 
-    <TextView
-        android:id="@+id/temperatureValue"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="40ºC"
-        android:textSize="19sp"
-        app:layout_constraintBottom_toBottomOf="@+id/temperatureText"
-        app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
-        />
-    <SeekBar
+       <TextView
+           android:id="@+id/temperatureValue"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginTop="20dp"
+           android:text="Min: 0.0ºC\nMax: 40.0ºC"
+           android:textAlignment="textEnd"
+           android:textSize="19sp"
+           app:layout_constraintBottom_toBottomOf="@+id/temperatureText"
+           app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
+           />
+
+    <com.google.android.material.slider.RangeSlider
         android:id="@+id/temperatureSlider"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="15dp"
         android:layout_marginTop="10dp"
-        android:max="160"
-        android:min="-40"
-        android:progress="80"
-        android:thumb="@drawable/seekbar_thumb"
-        android:progressDrawable="@drawable/seekbar_progress"
-        android:splitTrack="false"
+        android:stepSize="0.5"
+        android:valueFrom="-20.0"
+        android:valueTo="80.0"
+        app:tickVisible = "false"
         app:labelBehavior="gone"
+        app:values="@array/initial_range_slider_temperature_values"
         app:layout_constraintTop_toBottomOf="@+id/temperatureText"
         />
 
-    <ImageButton
-        android:id="@+id/lightbulbButton"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
-        android:layout_marginBottom="5dp"
-        android:scaleType="fitXY"
-        android:src="@drawable/lightbulb_off"
-        android:textAlignment="center"
-        android:background="@null"
-        app:layout_constraintTop_toBottomOf="@+id/temperatureSlider"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+       <ImageButton
+           android:id="@+id/lightbulbButton"
+           android:layout_width="75dp"
+           android:layout_height="75dp"
+           android:layout_marginBottom="5dp"
+           android:scaleType="fitXY"
+           android:src="@drawable/lightbulb_off"
+           android:textAlignment="center"
+           android:background="@null"
+           app:layout_constraintTop_toBottomOf="@+id/temperatureSlider"
+           app:layout_constraintStart_toStartOf="parent"
+           app:layout_constraintEnd_toEndOf="parent"
+           app:layout_constraintBottom_toBottomOf="parent"/>
 
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+   </androidx.constraintlayout.widget.ConstraintLayout>
