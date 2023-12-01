@@ -138,7 +138,7 @@ public class DataFragment extends Fragment {
         humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
             List<Float> values = slider.getValues();
 
-            humidityValue.setText("Min: "+ String.valueOf(Collections.min(values)) + "%\nMax: "+ String.valueOf(Collections.max(values))+"%");
+            humidityValue.setText("Min: " + String.valueOf(Collections.min(values)) + "%\nMax: " + String.valueOf(Collections.max(values)) + "%");
         });
 
         //Update the thershold values of humidity
@@ -160,7 +160,7 @@ public class DataFragment extends Fragment {
         temperatureSlider.addOnChangeListener((slider, value, fromUser) -> {
             List<Float> values = slider.getValues();
 
-            temperatureValue.setText("Min: "+ String.valueOf(Collections.min(values)) + "ºC\nMax: "+ String.valueOf(Collections.max(values))+"ºC");
+            temperatureValue.setText("Min: " + String.valueOf(Collections.min(values)) + "ºC\nMax: " + String.valueOf(Collections.max(values)) + "ºC");
         });
 
         temperatureSlider.addOnSliderTouchListener(new RangeSlider.OnSliderTouchListener() {
@@ -226,10 +226,13 @@ public class DataFragment extends Fragment {
 
         scatter.legend().enabled(true);
         scatter.legend().fontSize(13d);
-        scatter.legend().padding(0d, 0d, 10d, 0d);
+        scatter.legend().padding(0d, 10d, 0d, 0d);
+        scatter.background().fill("#F8FCFC");
 
         scatter.xScale(DateTime.instantiate());
-        scatter.xAxis(0).labels().format("{%value}{dateTimeFormat:MMM d HH:mm:ss}");
+        scatter.xScale().alignMaximum(true);
+        scatter.xScale().alignMinimum(true);
+        scatter.xAxis(0).labels().format("{%tickValue}{dateTimeFormat:MMM d HH:mm:ss}");
 
         scatterHumidityLine = scatter.line(humidity_values);
         scatterTemperatureLine = scatter.line(temperature_values);
@@ -285,7 +288,7 @@ public class DataFragment extends Fragment {
         readingsViewModel.addHumidityLiveData(sensorReadingH);
 
         //Todo move this if condition to when receive the value from mqtt
-        if ((yValueH > readingsViewModel.getMaxHumidity() || yValueH < readingsViewModel.getMinHumidity())&& notificationsEnabled) {
+        if ((yValueH > readingsViewModel.getMaxHumidity() || yValueH < readingsViewModel.getMinHumidity()) && notificationsEnabled) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                     .setSmallIcon(R.drawable.water_drop_on)
                     .setContentTitle("Humidity Warning!")

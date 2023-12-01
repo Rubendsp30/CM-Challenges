@@ -17,58 +17,57 @@
         android:layout_height="350dp"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_marginHorizontal="15dp"
         android:background="#EF794C"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
-        -->
+-->
 
     <com.anychart.AnyChartView
         android:id="@+id/any_chart_view"
         android:layout_width="match_parent"
         android:layout_height="350dp"
-        android:layout_marginHorizontal="15dp"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.517"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+
     <ImageButton
         android:id="@+id/humidityButton"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginTop="10dp"
+        android:background="@null"
         android:scaleType="fitXY"
         android:src="@drawable/water_drop_on"
         android:textAlignment="center"
-        android:background="@null"
-        app:layout_constraintTop_toBottomOf="@+id/any_chart_view"
-        app:layout_constraintStart_toStartOf="@+id/humiditySlider"/>
+        app:layout_constraintStart_toStartOf="@+id/humiditySlider"
+        app:layout_constraintTop_toBottomOf="@+id/any_chart_view" />
 
     <ImageButton
         android:id="@+id/temperatureButton"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginStart="10dp"
+        android:background="@null"
         android:scaleType="fitXY"
         android:src="@drawable/thermostat_on"
         android:textAlignment="center"
-        android:background="@null"
-        app:layout_constraintTop_toTopOf="@+id/humidityButton"
-        app:layout_constraintStart_toEndOf="@+id/humidityButton"/>
+        app:layout_constraintStart_toEndOf="@+id/humidityButton"
+        app:layout_constraintTop_toTopOf="@+id/humidityButton" />
 
-   <TextView
-       android:id="@+id/humidityText"
-       android:layout_width="wrap_content"
-       android:layout_height="wrap_content"
-       android:layout_marginTop="25dp"
-       android:text="Humidity Limit"
-       android:textSize="19sp"
-       app:layout_constraintTop_toBottomOf="@+id/humidityButton"
-       app:layout_constraintStart_toStartOf="@+id/humiditySlider"
-       />
+    <TextView
+        android:id="@+id/humidityText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
+        android:text="Humidity Limit"
+        android:textSize="19sp"
+        app:layout_constraintStart_toStartOf="@+id/humiditySlider"
+        app:layout_constraintTop_toBottomOf="@+id/humidityButton" />
+
     <TextView
         android:id="@+id/humidityValue"
         android:layout_width="wrap_content"
@@ -78,8 +77,7 @@
         android:textAlignment="textEnd"
         android:textSize="19sp"
         app:layout_constraintBottom_toBottomOf="@id/humidityText"
-        app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
-        />
+        app:layout_constraintEnd_toEndOf="@+id/humiditySlider" />
 
     <com.google.android.material.slider.RangeSlider
         android:id="@+id/humiditySlider"
@@ -90,34 +88,31 @@
         android:stepSize="0.5"
         android:valueFrom="0.0"
         android:valueTo="100.0"
-        app:tickVisible = "false"
         app:labelBehavior="gone"
-        app:values="@array/initial_range_slider_humidity_values"
         app:layout_constraintTop_toBottomOf="@+id/humidityText"
-        />
+        app:tickVisible="false"
+        app:values="@array/initial_range_slider_humidity_values" />
 
-       <TextView
-           android:id="@+id/temperatureText"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="20dp"
-           android:text="Temperature Limit"
-           android:textSize="19sp"
-           app:layout_constraintTop_toBottomOf="@+id/humiditySlider"
-           app:layout_constraintStart_toStartOf="@+id/humiditySlider"
-           />
+    <TextView
+        android:id="@+id/temperatureText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Temperature Limit"
+        android:textSize="19sp"
+        app:layout_constraintStart_toStartOf="@+id/humiditySlider"
+        app:layout_constraintTop_toBottomOf="@+id/humiditySlider" />
 
-       <TextView
-           android:id="@+id/temperatureValue"
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:layout_marginTop="20dp"
-           android:text="Min: 0.0ºC\nMax: 40.0ºC"
-           android:textAlignment="textEnd"
-           android:textSize="19sp"
-           app:layout_constraintBottom_toBottomOf="@+id/temperatureText"
-           app:layout_constraintEnd_toEndOf="@+id/humiditySlider"
-           />
+    <TextView
+        android:id="@+id/temperatureValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:text="Min: 0.0ºC\nMax: 40.0ºC"
+        android:textAlignment="textEnd"
+        android:textSize="19sp"
+        app:layout_constraintBottom_toBottomOf="@+id/temperatureText"
+        app:layout_constraintEnd_toEndOf="@+id/humiditySlider" />
 
     <com.google.android.material.slider.RangeSlider
         android:id="@+id/temperatureSlider"
@@ -128,25 +123,24 @@
         android:stepSize="0.5"
         android:valueFrom="-20.0"
         android:valueTo="80.0"
-        app:tickVisible = "false"
         app:labelBehavior="gone"
-        app:values="@array/initial_range_slider_temperature_values"
         app:layout_constraintTop_toBottomOf="@+id/temperatureText"
-        />
+        app:tickVisible="false"
+        app:values="@array/initial_range_slider_temperature_values" />
 
-       <ImageButton
-           android:id="@+id/lightbulbButton"
-           android:layout_width="75dp"
-           android:layout_height="75dp"
-           android:layout_marginBottom="5dp"
-           android:scaleType="fitXY"
-           android:src="@drawable/lightbulb_off"
-           android:textAlignment="center"
-           android:background="@null"
-           app:layout_constraintTop_toBottomOf="@+id/temperatureSlider"
-           app:layout_constraintStart_toStartOf="parent"
-           app:layout_constraintEnd_toEndOf="parent"
-           app:layout_constraintBottom_toBottomOf="parent"/>
+    <ImageButton
+        android:id="@+id/lightbulbButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginBottom="5dp"
+        android:background="@null"
+        android:scaleType="fitXY"
+        android:src="@drawable/lightbulb_off"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/temperatureSlider" />
 
 
-   </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
