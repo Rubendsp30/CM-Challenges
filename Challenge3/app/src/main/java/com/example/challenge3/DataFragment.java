@@ -44,10 +44,13 @@ import java.util.Random;
 
 
 public class DataFragment extends Fragment {
+    private static final String TOPIC_LED_CONTROL = "/challenge_3/led_control";
 
     private static final String CHANNEL_ID = "App_3";
 
     private ReadingsViewModel readingsViewModel;
+    private MQTTHelper mqttHelper;
+
     private ImageButton lightbulbButton;
     private ImageButton humidityButton;
     private ImageButton temperatureButton;
@@ -91,6 +94,10 @@ public class DataFragment extends Fragment {
 
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        mqttHelper = new MQTTHelper(getContext(), "clientName", TOPIC_LED_CONTROL);
+        mqttHelper.connect();
+
         super.onViewCreated(view, savedInstanceState);
 
         notificationsEnabled = true;
@@ -182,12 +189,18 @@ public class DataFragment extends Fragment {
         this.humidityButton.setOnClickListener(v -> updateHumidityState());
         this.temperatureButton.setOnClickListener(v -> updateTemperatureState());
         this.lightbulbButton.setOnClickListener(v -> {
+            MQTTHelper mqttHelper = new MQTTHelper(getContext(), "clientName", TOPIC_LED_CONTROL);
+            mqttHelper.connect();
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, lightState ? "OFF" : "ON");
             updateLight();
-            // TODO *********************************************Code only used for testing******************************************
             updateChart();
-            // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         });
-    }
+        updateLight();
+        // TODO *********************************************Code only used for testing******************************************
+        updateChart();
+        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    };
+
 
 
     private void updateHumidityState() {
@@ -209,13 +222,18 @@ public class DataFragment extends Fragment {
     }
 
     private void updateLight() {
+        lightState = !lightState;
         if (lightState) {
             this.lightbulbButton.setImageResource(R.drawable.lightbulb_on);
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, "ON");
         } else {
             this.lightbulbButton.setImageResource(R.drawable.lightbulb_off);
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, "OFF");
         }
-        this.lightState = !this.lightState;
     }
+
+
+
 
     private void setupChart() {
 
