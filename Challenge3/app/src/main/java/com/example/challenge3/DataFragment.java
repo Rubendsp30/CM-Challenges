@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,10 @@ import com.anychart.enums.MarkerType;
 import com.anychart.scales.DateTime;
 import com.google.android.material.slider.RangeSlider;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -46,6 +51,8 @@ import java.util.Random;
 public class DataFragment extends Fragment {
 
     private static final String CHANNEL_ID = "App_3";
+    private static final String TOPIC_LED_CONTROL = "/challenge_3/led_control";
+    private MQTTHelper mqttHelper;
 
     private ReadingsViewModel readingsViewModel;
     private ImageButton lightbulbButton;
@@ -81,6 +88,7 @@ public class DataFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.data_fragment, container, false);
+        this.mqttHelper = setupMqtt();
         this.readingsViewModel = new ViewModelProvider(requireActivity()).get(ReadingsViewModel.class);
         createNotificationsChannel();
         this.humidityLive = readingsViewModel.getHumidityDataFirestore();
@@ -209,13 +217,50 @@ public class DataFragment extends Fragment {
     }
 
     private void updateLight() {
-        if (lightState) {
+        String lightMsg = !this.lightState ? "ON" : "OFF";
+        if (lightMsg.equals("ON")) {
             this.lightbulbButton.setImageResource(R.drawable.lightbulb_on);
         } else {
             this.lightbulbButton.setImageResource(R.drawable.lightbulb_off);
         }
         this.lightState = !this.lightState;
+        mqttHelper.publishToTopic(TOPIC_LED_CONTROL, lightMsg, 2);
     }
+
+    private MQTTHelper setupMqtt() {
+        mqttHelper = new MQTTHelper(requireContext(), "ClientName", "challenge_3");
+        mqttHelper.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                Log.d("MQTT", "CONNECTED: "+serverURI);
+
+                //dar subscribe dos topicos
+            }
+
+            @Override
+            public void connectionLost(Throwable cause) {
+                Log.d("MQTT", "CONNECTION LOST");
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                /*todo Aqui cria-se um novo objeto sensorReading com o valor q recebe da msg.
+                Dps ter 2 ifs, para temp e humid em q adiciona esses valores ao viewmodel, manda
+                a notif e dá update do chart
+                */
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                Log.d("MQTT", "DELIVERY COMPLETED");
+            }
+        });
+
+        mqttHelper.connect();
+        return mqttHelper;
+    }
+
+
 
     private void setupChart() {
 

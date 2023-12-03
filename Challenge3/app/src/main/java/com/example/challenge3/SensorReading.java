@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.Date;
 
