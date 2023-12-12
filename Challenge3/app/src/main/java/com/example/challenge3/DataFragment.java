@@ -39,28 +39,24 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 
 
 public class DataFragment extends Fragment {
 
     private static final String CHANNEL_ID = "App_3";
-    private static final String TOPIC_LED_CONTROL = "/challenge_3/led_control";
+    private static final String TOPIC_LED_CONTROL = "/challenge_3/light";
+    public static final String HUMIDITY_TOPIC = "/challenge_3/humidity";
+    public static final String TEMPERATURE_TOPIC = "/challenge_3/temperature";
     private MQTTHelper mqttHelper;
 
     private ReadingsViewModel readingsViewModel;
-    private ImageButton lightbulbButton;
     private ImageButton humidityButton;
     private ImageButton temperatureButton;
     private TextView humidityValue;
     private TextView temperatureValue;
-    private boolean lightState;
     private boolean humidityState;
     private boolean temperatureState;
 
@@ -120,8 +116,8 @@ public class DataFragment extends Fragment {
         this.humidityState = true;
         this.temperatureButton = view.findViewById(R.id.temperatureButton);
         this.temperatureState = true;
-        this.lightbulbButton = view.findViewById(R.id.lightbulbButton);
-        this.lightState = false;
+        ImageButton lightbulbOnButton = view.findViewById(R.id.lightbulbOnButton);
+        ImageButton lightbulbOffButton = view.findViewById(R.id.lightbulbOffButton);
 
         this.humidityValue = view.findViewById(R.id.humidityValue);
         this.temperatureValue = view.findViewById(R.id.temperatureValue);
@@ -189,11 +185,11 @@ public class DataFragment extends Fragment {
 
         this.humidityButton.setOnClickListener(v -> updateHumidityState());
         this.temperatureButton.setOnClickListener(v -> updateTemperatureState());
-        this.lightbulbButton.setOnClickListener(v -> {
-            updateLight();
-            // TODO *********************************************Code only used for testing******************************************
-            updateChart();
-            // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        lightbulbOnButton.setOnClickListener(v -> {
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL,"on",2);
+        });
+        lightbulbOffButton.setOnClickListener(v -> {
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL,"off",2);
         });
     }
 
@@ -201,8 +197,10 @@ public class DataFragment extends Fragment {
     private void updateHumidityState() {
         if (humidityState) {
             this.humidityButton.setImageResource(R.drawable.water_drop_off);
+            mqttHelper.unsubscribeToTopic(HUMIDITY_TOPIC);
         } else {
             this.humidityButton.setImageResource(R.drawable.water_drop_on);
+            mqttHelper.subscribeToTopic(HUMIDITY_TOPIC);
         }
         this.humidityState = !this.humidityState;
     }
@@ -210,21 +208,12 @@ public class DataFragment extends Fragment {
     private void updateTemperatureState() {
         if (temperatureState) {
             this.temperatureButton.setImageResource(R.drawable.thermostat_off);
+            mqttHelper.unsubscribeToTopic(TEMPERATURE_TOPIC);
         } else {
             this.temperatureButton.setImageResource(R.drawable.thermostat_on);
+            mqttHelper.subscribeToTopic(TEMPERATURE_TOPIC);
         }
         this.temperatureState = !this.temperatureState;
-    }
-
-    private void updateLight() {
-        String lightMsg = !this.lightState ? "ON" : "OFF";
-        if (lightMsg.equals("ON")) {
-            this.lightbulbButton.setImageResource(R.drawable.lightbulb_on);
-        } else {
-            this.lightbulbButton.setImageResource(R.drawable.lightbulb_off);
-        }
-        this.lightState = !this.lightState;
-        mqttHelper.publishToTopic(TOPIC_LED_CONTROL, lightMsg, 2);
     }
 
     private MQTTHelper setupMqtt() {
@@ -233,8 +222,8 @@ public class DataFragment extends Fragment {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
                 Log.d("MQTT", "CONNECTED: "+serverURI);
-
-                //dar subscribe dos topicos
+                mqttHelper.subscribeToTopic("/challenge_3/temperature");
+                mqttHelper.subscribeToTopic("/challenge_3/humidity");
             }
 
             @Override
@@ -243,11 +232,39 @@ public class DataFragment extends Fragment {
             }
 
             @Override
-            public void messageArrived(String topic, MqttMessage message) throws Exception {
-                /*todo Aqui cria-se um novo objeto sensorReading com o valor q recebe da msg.
-                Dps ter 2 ifs, para temp e humid em q adiciona esses valores ao viewmodel, manda
-                a notif e dá update do chart
-                */
+            public void messageArrived(String topic, MqttMessage message) {
+                SensorReading sensorReading = new SensorReading(Double.parseDouble(message.toString()));
+                Log.e("Msg", sensorReading.toString());
+                if (topic.equals(HUMIDITY_TOPIC)) {
+                    readingsViewModel.addHumidityLiveData(sensorReading);
+                    if ((sensorReading.getSensorReading() < readingsViewModel.getMinHumidity() || sensorReading.getSensorReading() > readingsViewModel.getMaxHumidity())&& notificationsEnabled) {
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+                                .setSmallIcon(R.drawable.water_drop_on)
+                                .setContentTitle("Humidity Warning!")
+                                .setContentText("Humidity out of allowed range.")
+                                .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
+                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
+                        if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                            notificationManager.notify(1, builder.build());
+                        }
+                    }
+                    updateChart();
+                }
+                if (topic.equals(TEMPERATURE_TOPIC)) {
+                    readingsViewModel.addTemperatureLiveData(sensorReading);
+                    if ((sensorReading.getSensorReading() < readingsViewModel.getMinTemperature() || sensorReading.getSensorReading() > readingsViewModel.getMaxTemperature()) && notificationsEnabled) {
+                        NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+                                .setSmallIcon(R.drawable.thermostat_on)
+                                .setContentTitle("Temperature Warning!")
+                                .setContentText("Temperature out of allowed range.")
+                                .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
+                        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
+                        if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                            notificationManager.notify(1, builder.build());
+                        }
+                    }
+                    updateChart();
+                }
             }
 
             @Override
@@ -275,8 +292,8 @@ public class DataFragment extends Fragment {
         scatter.background().fill("#F8FCFC");
 
         scatter.xScale(DateTime.instantiate());
-        scatter.xScale().alignMaximum(true);
-        scatter.xScale().alignMinimum(true);
+        //scatter.xScale().alignMaximum(true);
+        //scatter.xScale().alignMinimum(true);
         scatter.xAxis(0).labels().format("{%tickValue}{dateTimeFormat:MMM d HH:mm:ss}");
 
         scatterHumidityLine = scatter.line(humidity_values);
@@ -306,9 +323,6 @@ public class DataFragment extends Fragment {
         humidity_values = new ArrayList<>();
         temperature_values = new ArrayList<>();
 
-        // TODO *********************************************Code only used for testing******************************************
-        addData();
-        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
         for (SensorReading reading : readingsViewModel.getHumidityData()) {
             humidity_values.add(new ValueDataEntry(String.valueOf(reading.getTimestamp().getTime()), reading.getSensorReading().floatValue()));
         }
@@ -320,55 +334,6 @@ public class DataFragment extends Fragment {
         scatterTemperatureLine.data(temperature_values);
 
     }
-
-    // TODO *********************************************Code only used for testing******************************************
-    private void addData() {
-        Random random = new Random();
-        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
-        DecimalFormat decimalFormat = new DecimalFormat("#.##", symbols);
-        //Humidity
-        double yValueH = random.nextDouble() * 100; // Generate a random y value between -20 and 80
-        double formattedYValueH = Double.parseDouble(decimalFormat.format(yValueH));
-        SensorReading sensorReadingH = new SensorReading(formattedYValueH);
-        readingsViewModel.addHumidityLiveData(sensorReadingH);
-
-        //Todo move this if condition to when receive the value from mqtt
-        if ((yValueH > readingsViewModel.getMaxHumidity() || yValueH < readingsViewModel.getMinHumidity()) && notificationsEnabled) {
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
-                    .setSmallIcon(R.drawable.water_drop_on)
-                    .setContentTitle("Humidity Warning!")
-                    .setContentText("Humidity out of allowed range.")
-                    .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
-            if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                notificationManager.notify(1, builder.build());
-            }
-
-
-        }
-
-        //temperature
-        double yValueT = random.nextDouble() * (80 + 20) - 20; // Generate a random y value between -20 and 80
-        double formattedYValueT = Double.parseDouble(decimalFormat.format(yValueT));
-        SensorReading sensorReadingT = new SensorReading(formattedYValueT);
-        readingsViewModel.addTemperatureLiveData(sensorReadingT);
-
-        //Todo move this if condition to when receive the value from mqtt
-        if ((yValueT > readingsViewModel.getMaxTemperature() || yValueT < readingsViewModel.getMinTemperature()) && notificationsEnabled) {
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
-                    .setSmallIcon(R.drawable.thermostat_on)
-                    .setContentTitle("Temperature Warning!")
-                    .setContentText("Temperature out of allowed range.")
-                    .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
-            if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                notificationManager.notify(2, builder.build());
-            }
-
-        }
-    }
-    // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
 
     private void createNotificationsChannel() {
         int importance = NotificationManager.IMPORTANCE_DEFAULT;

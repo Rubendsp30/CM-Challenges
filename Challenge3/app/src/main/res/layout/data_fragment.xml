@@ -129,7 +129,7 @@
         app:values="@array/initial_range_slider_temperature_values" />
 
     <ImageButton
-        android:id="@+id/lightbulbButton"
+        android:id="@+id/lightbulbOffButton"
         android:layout_width="75dp"
         android:layout_height="75dp"
         android:layout_marginBottom="5dp"
@@ -139,8 +139,26 @@
         android:textAlignment="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.8"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/temperatureSlider" />
+        app:layout_constraintTop_toBottomOf="@+id/temperatureSlider"
+        app:layout_constraintVertical_bias="0.501" />
+
+    <ImageButton
+        android:id="@+id/lightbulbOnButton"
+        android:layout_width="75dp"
+        android:layout_height="75dp"
+        android:layout_marginBottom="5dp"
+        android:background="@null"
+        android:scaleType="fitXY"
+        android:src="@drawable/lightbulb_on"
+        android:textAlignment="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.247"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/temperatureSlider"
+        app:layout_constraintVertical_bias="0.501" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>
