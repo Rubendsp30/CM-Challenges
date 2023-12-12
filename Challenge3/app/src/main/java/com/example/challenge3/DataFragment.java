@@ -5,6 +5,7 @@ import android.app.NotificationManager;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -34,6 +35,10 @@ import com.anychart.enums.MarkerType;
 import com.anychart.scales.DateTime;
 import com.google.android.material.slider.RangeSlider;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayList;
@@ -44,14 +49,15 @@ import java.util.Random;
 
 
 public class DataFragment extends Fragment {
-    private static final String TOPIC_LED_CONTROL = "/challenge_3/led_control";
 
     private static final String CHANNEL_ID = "App_3";
-
-    private ReadingsViewModel readingsViewModel;
+    private static final String TOPIC_TEST = "/challenge_3/light";
     private MQTTHelper mqttHelper;
 
-    private ImageButton lightbulbButton;
+    private ReadingsViewModel readingsViewModel;
+   // private ImageButton lightbulbButton;
+    private ImageButton lightbulbOnButton;
+    private ImageButton lightbulbOffButton;
     private ImageButton humidityButton;
     private ImageButton temperatureButton;
     private TextView humidityValue;
@@ -84,6 +90,7 @@ public class DataFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.data_fragment, container, false);
+        this.mqttHelper = setupMqtt();
         this.readingsViewModel = new ViewModelProvider(requireActivity()).get(ReadingsViewModel.class);
         createNotificationsChannel();
         this.humidityLive = readingsViewModel.getHumidityDataFirestore();
@@ -94,10 +101,6 @@ public class DataFragment extends Fragment {
 
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-
-        mqttHelper = new MQTTHelper(getContext(), "clientName", TOPIC_LED_CONTROL);
-        mqttHelper.connect();
-
         super.onViewCreated(view, savedInstanceState);
 
         notificationsEnabled = true;
@@ -119,7 +122,8 @@ public class DataFragment extends Fragment {
         this.humidityState = true;
         this.temperatureButton = view.findViewById(R.id.temperatureButton);
         this.temperatureState = true;
-        this.lightbulbButton = view.findViewById(R.id.lightbulbButton);
+        this.lightbulbOnButton = view.findViewById(R.id.lightbulbOnButton);
+        this.lightbulbOffButton = view.findViewById(R.id.lightbulbOffButton);
         this.lightState = false;
 
         this.humidityValue = view.findViewById(R.id.humidityValue);
@@ -145,7 +149,7 @@ public class DataFragment extends Fragment {
         humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
             List<Float> values = slider.getValues();
 
-            humidityValue.setText("Min: "+ String.valueOf(Collections.min(values)) + "%\nMax: "+ String.valueOf(Collections.max(values))+"%");
+            humidityValue.setText("Min: " + String.valueOf(Collections.min(values)) + "%\nMax: " + String.valueOf(Collections.max(values)) + "%");
         });
 
         //Update the thershold values of humidity
@@ -167,7 +171,7 @@ public class DataFragment extends Fragment {
         temperatureSlider.addOnChangeListener((slider, value, fromUser) -> {
             List<Float> values = slider.getValues();
 
-            temperatureValue.setText("Min: "+ String.valueOf(Collections.min(values)) + "ºC\nMax: "+ String.valueOf(Collections.max(values))+"ºC");
+            temperatureValue.setText("Min: " + String.valueOf(Collections.min(values)) + "ºC\nMax: " + String.valueOf(Collections.max(values)) + "ºC");
         });
 
         temperatureSlider.addOnSliderTouchListener(new RangeSlider.OnSliderTouchListener() {
@@ -188,18 +192,19 @@ public class DataFragment extends Fragment {
 
         this.humidityButton.setOnClickListener(v -> updateHumidityState());
         this.temperatureButton.setOnClickListener(v -> updateTemperatureState());
-        this.lightbulbButton.setOnClickListener(v -> {
-            MQTTHelper mqttHelper = new MQTTHelper(getContext(), "clientName", TOPIC_LED_CONTROL);
-            mqttHelper.connect();
-            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, lightState ? "OFF" : "ON");
-            updateLight();
-            updateChart();
+        this.lightbulbOnButton.setOnClickListener(v -> {
+            mqttHelper.publishToTopic(TOPIC_TEST, "on");
+            this.lightbulbOnButton.setImageResource(R.drawable.lightbulb_on);
         });
-        updateLight();
-        // TODO *********************************************Code only used for testing******************************************
-        updateChart();
-        // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-    };
+        this.lightbulbOffButton.setOnClickListener(v -> {
+            mqttHelper.publishToTopic(TOPIC_TEST, "off");
+            this.lightbulbOffButton.setImageResource(R.drawable.lightbulb_off);
+        });
+           // updateLight();
+            // TODO *********************************************Code only used for testing******************************************
+           // updateChart();
+            // TODO ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^Code only used for testing^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        };
 
 
 
@@ -221,17 +226,84 @@ public class DataFragment extends Fragment {
         this.temperatureState = !this.temperatureState;
     }
 
-    private void updateLight() {
-        lightState = !lightState;
-        if (lightState) {
-            this.lightbulbButton.setImageResource(R.drawable.lightbulb_on);
-            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, "ON");
-        } else {
-            this.lightbulbButton.setImageResource(R.drawable.lightbulb_off);
-            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, "OFF");
-        }
-    }
+    private MQTTHelper setupMqtt() {
+        mqttHelper = new MQTTHelper(requireContext(), "ClientName", "challenge_3");
+        mqttHelper.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                Log.d("MQTT", "CONNECTED: "+serverURI);
+                mqttHelper.subscribeToTopic(TOPIC_TEST);
+                mqttHelper.subscribeToTopic("/challenge_3/temperature");
+                mqttHelper.subscribeToTopic("/challenge_3/humidity");
+            }
 
+            @Override
+            public void connectionLost(Throwable cause) {
+                Log.d("MQTT", "CONNECTION LOST");
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                /*todo Aqui cria-se um novo objeto sensorReading com o valor q recebe da msg.
+                Dps ter 2 ifs, para temp e humid em q adiciona esses valores ao viewmodel, manda
+                a notif e dá update do chart
+                */
+                String messageString = new String(message.getPayload());
+                if (topic.equals(TOPIC_TEST)) {
+                    if (messageString.equals("ON")) {
+                        Log.d("MQTT", "Received " + messageString + " message on topic: " + topic);
+                    }
+
+                } else {
+                    try {
+                        double sensorValue = Double.parseDouble(messageString);
+                        SensorReading sensorReading = new SensorReading(sensorValue);
+
+                        if (topic.equals("/challenge_3/temperature")) {
+                            readingsViewModel.addTemperatureLiveData(sensorReading);
+                            if (sensorValue > readingsViewModel.getMaxTemperature() ||
+                                    sensorValue < readingsViewModel.getMinTemperature()) {
+                                sendNotification("Temperature Warning!",
+                                        "Temperature out of allowed range: " + sensorValue + "ºC");
+                            }
+                        } else if (topic.equals("/challenge_3/humidity")) {
+                            readingsViewModel.addHumidityLiveData(sensorReading);
+                            if (sensorValue > readingsViewModel.getMaxHumidity() ||
+                                    sensorValue < readingsViewModel.getMinHumidity()) {
+                                sendNotification("Humidity Warning!",
+                                        "Humidity out of allowed range: " + sensorValue + "%");
+                            }
+                        }
+
+                        updateChart();
+                    } catch (NumberFormatException e) {
+                        Log.e("MQTT", "Error parsing MQTT message: " + e.getMessage());
+                    }
+                }
+            }
+
+            private void sendNotification(String title, String content) {
+                if (notificationsEnabled) {
+                    NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
+                            .setContentTitle(title)
+                            .setContentText(content);
+
+                    NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
+                }
+            }
+
+
+
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                Log.d("MQTT", "DELIVERY COMPLETED");
+            }
+        });
+
+        mqttHelper.connect();
+        return mqttHelper;
+    }
 
 
 
@@ -244,10 +316,13 @@ public class DataFragment extends Fragment {
 
         scatter.legend().enabled(true);
         scatter.legend().fontSize(13d);
-        scatter.legend().padding(0d, 0d, 10d, 0d);
+        scatter.legend().padding(0d, 10d, 0d, 0d);
+        scatter.background().fill("#F8FCFC");
 
         scatter.xScale(DateTime.instantiate());
-        scatter.xAxis(0).labels().format("{%value}{dateTimeFormat:MMM d HH:mm:ss}");
+       // scatter.xScale().alignMaximum(true);
+       // scatter.xScale().alignMinimum(true);
+        scatter.xAxis(0).labels().format("{%tickValue}{dateTimeFormat:MMM d HH:mm:ss}");
 
         scatterHumidityLine = scatter.line(humidity_values);
         scatterTemperatureLine = scatter.line(temperature_values);
@@ -303,7 +378,7 @@ public class DataFragment extends Fragment {
         readingsViewModel.addHumidityLiveData(sensorReadingH);
 
         //Todo move this if condition to when receive the value from mqtt
-        if ((yValueH > readingsViewModel.getMaxHumidity() || yValueH < readingsViewModel.getMinHumidity())&& notificationsEnabled) {
+        if ((yValueH > readingsViewModel.getMaxHumidity() || yValueH < readingsViewModel.getMinHumidity()) && notificationsEnabled) {
             NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                     .setSmallIcon(R.drawable.water_drop_on)
                     .setContentTitle("Humidity Warning!")
