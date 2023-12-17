@@ -39,9 +39,15 @@ import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 public class DataFragment extends Fragment {
@@ -66,9 +72,6 @@ public class DataFragment extends Fragment {
     private Line scatterHumidityLine;
     private Line scatterTemperatureLine;
 
-    private LiveData<List<SensorReading>> temperatureLive;
-    private LiveData<List<SensorReading>> humidityLive;
-
     private boolean notificationsEnabled;
 
     private final ActivityResultLauncher<String> requestPermissionLauncher = registerForActivityResult(
@@ -85,10 +88,9 @@ public class DataFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.data_fragment, container, false);
         this.mqttHelper = setupMqtt();
+
         this.readingsViewModel = new ViewModelProvider(requireActivity()).get(ReadingsViewModel.class);
         createNotificationsChannel();
-        this.humidityLive = readingsViewModel.getHumidityDataFirestore();
-        this.temperatureLive = readingsViewModel.getTemperatureDataFirestore();
 
         return view;
     }
@@ -96,6 +98,9 @@ public class DataFragment extends Fragment {
 
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
+        anyChartView = view.findViewById(R.id.any_chart_view);
+        setupChart();
 
         notificationsEnabled = true;
 
@@ -107,10 +112,11 @@ public class DataFragment extends Fragment {
 
             }
         }
+        readingsViewModel.getAllTemperatureEntityList();
+        LiveData<List<TemperatureEntity>> temperatureLive = readingsViewModel.getListOfTemperatureEntity();
+        readingsViewModel.getAllHumidityEntityList();
+        LiveData<List<HumidityEntity>> humidityLive = readingsViewModel.getListOfHumidityEntity();
 
-
-        anyChartView = view.findViewById(R.id.any_chart_view);
-        setupChart();
 
         this.humidityButton = view.findViewById(R.id.humidityButton);
         this.humidityState = true;
@@ -132,11 +138,8 @@ public class DataFragment extends Fragment {
         this.readingsViewModel.setMinTemperature(Collections.min(tem));
         this.readingsViewModel.setMaxTemperature(Collections.max(tem));
 
-
-        /* TODO DESCOMENTAR APENAS APÓS DADOS SEREM OBTIDOS DE OUTRA FORMA SENÃO ENTRA EM LOOP INFINITO
-        humidityLive.observeForever(sensorReadings -> updateChart());
-        temperatureLive.observeForever(sensorReadings -> updateChart());
-        */
+        temperatureLive.observeForever(temperatureEntityList -> updateChart());
+        humidityLive.observeForever(humidityEntityList -> updateChart());
 
         // Update Humidity text on change
         humiditySlider.addOnChangeListener((slider, value, fromUser) -> {
@@ -186,10 +189,12 @@ public class DataFragment extends Fragment {
         this.humidityButton.setOnClickListener(v -> updateHumidityState());
         this.temperatureButton.setOnClickListener(v -> updateTemperatureState());
         lightbulbOnButton.setOnClickListener(v -> {
-            mqttHelper.publishToTopic(TOPIC_LED_CONTROL,"on",2);
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, "on", 2);
+            Log.e("Light", "Light on");
         });
         lightbulbOffButton.setOnClickListener(v -> {
-            mqttHelper.publishToTopic(TOPIC_LED_CONTROL,"off",2);
+            mqttHelper.publishToTopic(TOPIC_LED_CONTROL, "off", 2);
+            Log.e("Light", "Light off");
         });
     }
 
@@ -221,9 +226,9 @@ public class DataFragment extends Fragment {
         mqttHelper.setCallback(new MqttCallbackExtended() {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
-                Log.d("MQTT", "CONNECTED: "+serverURI);
-                mqttHelper.subscribeToTopic("/challenge_3/temperature");
-                mqttHelper.subscribeToTopic("/challenge_3/humidity");
+                Log.d("MQTT", "CONNECTED: " + serverURI);
+                mqttHelper.subscribeToTopic(TEMPERATURE_TOPIC);
+                mqttHelper.subscribeToTopic(HUMIDITY_TOPIC);
             }
 
             @Override
@@ -233,11 +238,13 @@ public class DataFragment extends Fragment {
 
             @Override
             public void messageArrived(String topic, MqttMessage message) {
-                SensorReading sensorReading = new SensorReading(Double.parseDouble(message.toString()));
-                Log.e("Msg", sensorReading.toString());
+
                 if (topic.equals(HUMIDITY_TOPIC)) {
-                    readingsViewModel.addHumidityLiveData(sensorReading);
-                    if ((sensorReading.getSensorReading() < readingsViewModel.getMinHumidity() || sensorReading.getSensorReading() > readingsViewModel.getMaxHumidity())&& notificationsEnabled) {
+                    HumidityEntity newHumidity = new HumidityEntity();
+                    newHumidity.value = Double.parseDouble(message.toString());
+                    newHumidity.timestamp = Timestamp.from(Instant.now()).getTime();
+                    readingsViewModel.addHumidityLiveData(newHumidity);
+                    if ((newHumidity.value < readingsViewModel.getMinHumidity() || newHumidity.value > readingsViewModel.getMaxHumidity()) && notificationsEnabled) {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                                 .setSmallIcon(R.drawable.water_drop_on)
                                 .setContentTitle("Humidity Warning!")
@@ -245,14 +252,18 @@ public class DataFragment extends Fragment {
                                 .setPriority(NotificationCompat.FLAG_ONLY_ALERT_ONCE);
                         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(requireContext());
                         if (ActivityCompat.checkSelfPermission(requireContext(), android.Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
-                            notificationManager.notify(1, builder.build());
+                            notificationManager.notify(2, builder.build());
                         }
                     }
                     updateChart();
                 }
+
                 if (topic.equals(TEMPERATURE_TOPIC)) {
-                    readingsViewModel.addTemperatureLiveData(sensorReading);
-                    if ((sensorReading.getSensorReading() < readingsViewModel.getMinTemperature() || sensorReading.getSensorReading() > readingsViewModel.getMaxTemperature()) && notificationsEnabled) {
+                    TemperatureEntity newTemperature = new TemperatureEntity();
+                    newTemperature.value = Double.parseDouble(message.toString());
+                    newTemperature.timestamp = Timestamp.from(Instant.now()).getTime();
+                    readingsViewModel.addTemperatureLiveData(newTemperature);
+                    if ((newTemperature.value < readingsViewModel.getMinTemperature() || newTemperature.value > readingsViewModel.getMaxTemperature()) && notificationsEnabled) {
                         NotificationCompat.Builder builder = new NotificationCompat.Builder(requireContext(), CHANNEL_ID)
                                 .setSmallIcon(R.drawable.thermostat_on)
                                 .setContentTitle("Temperature Warning!")
@@ -278,7 +289,6 @@ public class DataFragment extends Fragment {
     }
 
 
-
     private void setupChart() {
 
         Scatter scatter = AnyChart.scatter();
@@ -292,8 +302,6 @@ public class DataFragment extends Fragment {
         scatter.background().fill("#F8FCFC");
 
         scatter.xScale(DateTime.instantiate());
-        //scatter.xScale().alignMaximum(true);
-        //scatter.xScale().alignMinimum(true);
         scatter.xAxis(0).labels().format("{%tickValue}{dateTimeFormat:MMM d HH:mm:ss}");
 
         scatterHumidityLine = scatter.line(humidity_values);
@@ -314,25 +322,85 @@ public class DataFragment extends Fragment {
         scatterTemperatureLine.tooltip().titleFormat("{%x}{dateTimeFormat:MMM d HH:mm:ss}");
         scatterTemperatureLine.tooltip().format("{%value}ºC");
 
-
         anyChartView.setChart(scatter);
 
     }
 
     private void updateChart() {
+
         humidity_values = new ArrayList<>();
         temperature_values = new ArrayList<>();
 
-        for (SensorReading reading : readingsViewModel.getHumidityData()) {
-            humidity_values.add(new ValueDataEntry(String.valueOf(reading.getTimestamp().getTime()), reading.getSensorReading().floatValue()));
-        }
-        for (SensorReading reading : readingsViewModel.getTemperatureData()) {
-            temperature_values.add(new ValueDataEntry(String.valueOf(reading.getTimestamp().getTime()), reading.getSensorReading().floatValue()));
+        Map<Long, List<TemperatureEntity>> groupedTemperatureData = groupTemperatureByFixedIntervals(readingsViewModel.getTemperatureData());
+        Map<Long, List<HumidityEntity>> groupedHumidityData = groupHumidityByFixedIntervals(readingsViewModel.getHumidityData());
+
+        long currentTime = System.currentTimeMillis();
+
+        for (Map.Entry<Long, List<TemperatureEntity>> entry : groupedTemperatureData.entrySet()) {
+
+            if (entry.getKey() > currentTime) {
+                continue;
+            }
+            double averageTemperature = entry.getValue().stream()
+                    .mapToDouble(te -> te.value)
+                    .average()
+                    .orElse(0.0);
+            temperature_values.add(new ValueDataEntry(entry.getKey(), averageTemperature));
         }
 
-        scatterHumidityLine.data(humidity_values);
-        scatterTemperatureLine.data(temperature_values);
+        for (Map.Entry<Long, List<HumidityEntity>> entry : groupedHumidityData.entrySet()) {
 
+            if (entry.getKey() > currentTime) {
+                continue;
+            }
+            double averageHumidity = entry.getValue().stream()
+                    .mapToDouble(te -> te.value)
+                    .average()
+                    .orElse(0.0);
+            humidity_values.add(new ValueDataEntry(entry.getKey(), averageHumidity));
+        }
+
+
+        if (humidity_values != null && !humidity_values.isEmpty()) {
+            scatterHumidityLine.data(humidity_values);
+        }
+
+        if (temperature_values != null && !temperature_values.isEmpty()) {
+            scatterTemperatureLine.data(temperature_values);
+        }
+
+    }
+
+    private Map<Long, List<TemperatureEntity>> groupTemperatureByFixedIntervals(List<TemperatureEntity> temperatureData) {
+        Map<Long, List<TemperatureEntity>> groupedData = new TreeMap<>();
+        for (TemperatureEntity entity : temperatureData) {
+            long intervalEndTimestamp = findIntervalEnd(entity.timestamp);
+            groupedData.computeIfAbsent(intervalEndTimestamp, k -> new ArrayList<>()).add(entity);
+        }
+        return groupedData;
+    }
+
+    private Map<Long, List<HumidityEntity>> groupHumidityByFixedIntervals(List<HumidityEntity> humidityData) {
+        Map<Long, List<HumidityEntity>> groupedData = new TreeMap<>();
+        for (HumidityEntity entity : humidityData) {
+            long intervalEndTimestamp = findIntervalEnd(entity.timestamp);
+            groupedData.computeIfAbsent(intervalEndTimestamp, k -> new ArrayList<>()).add(entity);
+        }
+        return groupedData;
+    }
+
+    private long findIntervalEnd(long timestamp) {
+        LocalDateTime dateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp), ZoneId.systemDefault());
+        int hour = dateTime.getHour();
+        int nextIntervalHour = 2 * ((hour / 2) + 1);
+
+        if (nextIntervalHour >= 24) {
+            nextIntervalHour = 0; // Reset to 0
+            dateTime = dateTime.plusDays(1); // Move to the next day
+        }
+
+        LocalDateTime intervalEndDateTime = dateTime.withHour(nextIntervalHour).withMinute(0).withSecond(0).withNano(0);
+        return intervalEndDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
 
     private void createNotificationsChannel() {

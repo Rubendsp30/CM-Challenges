@@ -1,66 +1,75 @@
 package com.example.challenge3;
 
+import android.app.Application;
+import android.util.Log;
+
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
-public class ReadingsViewModel extends ViewModel {
+public class ReadingsViewModel extends AndroidViewModel {
 
-    private final MutableLiveData<List<SensorReading>> temperature_data = new MutableLiveData<>();
-    private final MutableLiveData<List<SensorReading>> humidity_data = new MutableLiveData<>();
+    private final MutableLiveData<List<TemperatureEntity>> listOfTemperature;
+    private final MutableLiveData<List<HumidityEntity>> listOfHumidity;
 
     private double minTemperature;
     private double minHumidity;
     private double maxTemperature;
     private double maxHumidity;
 
-    public ReadingsViewModel() {
+    private final AppDatabase appDatabase;
+    private final ExecutorService executorService;
+
+    public ReadingsViewModel(Application application) {
+        super(application);
+        listOfTemperature = new MutableLiveData<>();
+        listOfHumidity = new MutableLiveData<>();
+        appDatabase = AppDatabase.getDBinstance(getApplication().getApplicationContext());
+
+        executorService = Executors.newSingleThreadExecutor();
     }
 
-    public void addHumidityLiveData(SensorReading sensorReading) {
-        // Retrieve the current list from LiveData
-        List<SensorReading> currentHumidityData = humidity_data.getValue();
-
-        // Update the list with the new sensor reading
-        if (currentHumidityData == null) {
-            currentHumidityData = new ArrayList<>();
-        }
-        currentHumidityData.add(sensorReading);
-
-        // Update the LiveData with the new list
-        humidity_data.setValue(currentHumidityData);
+    public MutableLiveData<List<TemperatureEntity>> getListOfTemperatureEntity() {
+        return listOfTemperature;
     }
 
-    public void addTemperatureLiveData(SensorReading sensorReading) {
-        // Retrieve the current list from LiveData
-        List<SensorReading> currentTemperaturesData = temperature_data.getValue();
+    public void getAllTemperatureEntityList() {
+        executorService.execute(() -> {
+            // Delete old entries first
+            long cutoff = System.currentTimeMillis() - (48 * 60 * 60 * 1000);
+            appDatabase.temperatureDao().deleteOldTemperatureEntities(cutoff);
 
-        // Update the list with the new sensor reading
-        if (currentTemperaturesData == null) {
-            currentTemperaturesData = new ArrayList<>();
-        }
-        currentTemperaturesData.add(sensorReading);
-
-        // Update the LiveData with the new list
-        temperature_data.setValue(currentTemperaturesData);
+            List<TemperatureEntity> temperatureEntityList = appDatabase.temperatureDao().getAllTemperatureList();
+            if (temperatureEntityList.size() > 0) {
+                listOfTemperature.postValue(temperatureEntityList);
+            } else {
+                listOfTemperature.postValue(null);
+            }
+        });
     }
 
-    public ArrayList<SensorReading> getHumidityData() {
+    public void addTemperatureLiveData(TemperatureEntity temperatureEntity){
+        executorService.execute(() -> {
+            long rowId = appDatabase.temperatureDao().insertTemperatureEntity(temperatureEntity);
+            if (rowId > 0) {
+                // Insertion was successful
+                Log.d("Insert Temperature", "SUCESS");
+            } else {
+                // Insertion failed
+                Log.d("Insert Temperature", "FAIL");
+            }
+            getAllTemperatureEntityList();
+        });
+    }
+
+    public ArrayList<TemperatureEntity> getTemperatureData() {
         // Retrieve the value from MutableLiveData and return it
-        List<SensorReading> humidityList = humidity_data.getValue();
-        if (humidityList != null) {
-            return new ArrayList<>(humidityList);
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
-    public ArrayList<SensorReading> getTemperatureData() {
-        // Retrieve the value from MutableLiveData and return it
-        List<SensorReading> temperatureList = temperature_data.getValue();
+        List<TemperatureEntity> temperatureList = listOfTemperature.getValue();
         if (temperatureList != null) {
             return new ArrayList<>(temperatureList);
         } else {
@@ -68,19 +77,57 @@ public class ReadingsViewModel extends ViewModel {
         }
     }
 
-    //N tem DB implementado mas será esta função usada
-    public MutableLiveData<List<SensorReading>> getHumidityDataFirestore() {
-        ArrayList<SensorReading> readingArr = new ArrayList<>();
-        humidity_data.setValue(readingArr);
-        return humidity_data;
+    public MutableLiveData<List<HumidityEntity>> getListOfHumidityEntity() {
+
+        return listOfHumidity;
     }
 
-    //N tem DB implementado mas será esta função usada
-    public MutableLiveData<List<SensorReading>> getTemperatureDataFirestore() {
-        ArrayList<SensorReading> readingArr = new ArrayList<>();
-        temperature_data.setValue(readingArr);
-        return temperature_data;
+    public void getAllHumidityEntityList() {
+        executorService.execute(() -> {
+            // Delete old entries first
+            long cutoff = System.currentTimeMillis() - (48 * 60 * 60 * 1000);
+            appDatabase.humidityDao().deleteOldHumidityEntities(cutoff);
+
+            List<HumidityEntity> humidityEntityList = appDatabase.humidityDao().getAllHumidityList();
+            if (humidityEntityList.size() > 0) {
+                listOfHumidity.postValue(humidityEntityList);
+            } else {
+                listOfHumidity.postValue(null);
+            }
+        });
     }
+
+    public void addHumidityLiveData(HumidityEntity humidityEntity){
+        executorService.execute(() -> {
+            long rowId = appDatabase.humidityDao().insertHumidityEntity(humidityEntity);
+            if (rowId > 0) {
+                // Insertion was successful
+                Log.d("Insert Humidity", "SUCESS");
+            } else {
+                // Insertion failed
+                Log.d("Insert Humidity", "FAIL");
+            }
+            getAllHumidityEntityList();
+        });
+    }
+
+    public ArrayList<HumidityEntity> getHumidityData() {
+        // Retrieve the value from MutableLiveData and return it
+        List<HumidityEntity> humidityList = listOfHumidity.getValue();
+        if (humidityList != null) {
+            return new ArrayList<>(humidityList);
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        executorService.shutdown();
+    }
+
 
     public void setMaxHumidity(double maxHumidity) {
         this.maxHumidity = maxHumidity;

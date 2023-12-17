@@ -6,23 +6,6 @@
     android:layout_height="match_parent"
     android:background="#F8FCFC">
 
-    <!-- O chart n aparece direito na preview do mockup ent adicionei um MockView
-    q simula o espaço onde fica o chart para que se possa trabalhar com o resto da UI
-
-    Para usar basta descomentar o MockView e comentar o AnyChartView-->
-    <!--
-    <androidx.constraintlayout.utils.widget.MockView
-        android:id="@+id/any_chart_view"
-        android:layout_width="match_parent"
-        android:layout_height="350dp"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:background="#EF794C"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"/>
--->
-
     <com.anychart.AnyChartView
         android:id="@+id/any_chart_view"
         android:layout_width="match_parent"

@@ -7,6 +7,9 @@ import androidx.fragment.app.Fragment;
 import android.os.Bundle;
 
 public class MainActivity extends AppCompatActivity implements FragmentChangeListener {
+    /*
+    * Assumimos que o gráfico mostra os valores médios a cada 2h das últimas 48h
+    * */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -17,6 +20,8 @@ public class MainActivity extends AppCompatActivity implements FragmentChangeLis
         // Load the initial LoginFragment when the activity is created.
         loadFragment(new DataFragment(), "data_fragment");
     }
+
+
 
     @Override
     public void replaceFragment(Fragment fragment) {

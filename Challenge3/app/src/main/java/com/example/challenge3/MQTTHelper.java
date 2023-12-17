@@ -22,7 +22,7 @@ public class MQTTHelper {
     //final String server = "tcp://2.80.198.184:1883";
     final String server = "tcp://broker.hivemq.com:1883";
     final String TAG = "MQTT";
-    private String name;
+    private final String name;
 
 
     public MQTTHelper(Context context, String name, String topic) {
